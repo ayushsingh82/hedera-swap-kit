@@ -16,6 +16,7 @@
     "format": "prettier --write './**/*.(ts|sol)'",
     "lint": "eslint",
     "lint-staged": "eslint",
+    "swap:testnet": "hardhat run scripts/testnetSwap.ts --network hederaTestnet",
     "test": "HEDERA_FORKING=true REPORT_GAS=true hardhat test",
     "verify:contract": "ts-node scripts/verifySourcify.ts"
   },

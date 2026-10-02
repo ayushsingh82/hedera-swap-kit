@@ -24,6 +24,7 @@
     "hardhat:format": "npm run format -w @sh/hardhat --",
     "hardhat:lint": "npm run lint -w @sh/hardhat --",
     "hardhat:lint-staged": "npm run lint-staged -w @sh/hardhat --",
+    "hardhat:swap-testnet": "npm run swap:testnet -w @sh/hardhat --",
     "hardhat:test": "npm run test -w @sh/hardhat --",
     "hardhat:verify": "npm run verify:contract -w @sh/hardhat --",
     "lint": "npm run next:lint -- && npm run hardhat:lint --",

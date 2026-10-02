@@ -29,12 +29,12 @@ Kept from `create-scaffold-hbar` so the CLI scripts keep working:
 - [x] Removed the unused Foundry submodules file
 - [x] `origin` set to `ayushsingh82/hbar-template`
 
-### Phase 1: contracts (`packages/hardhat`)
-- [ ] Replace the blank template's sample contracts with `SwapHelper.sol`: wraps the V2 SwapRouter `exactInput`/`exactInputSingle`, handles HBAR in and out through WHBAR, emits events
-- [ ] Per-network address config in one file
-- [ ] Hardhat deploy script and unit tests
-- [ ] A script that runs one real testnet swap and prints the Hashscan link
-- [ ] A testnet pool with real reserves (find one via `test-api.saucerswap.finance/pools`, or seed our own)
+### Phase 1: contracts (`packages/hardhat`) (in progress)
+- [x] Replace the blank template's sample contracts with `SwapHelper.sol`: wraps the V2 SwapRouter `exactInput`, HBAR in via msg.value, HBAR out via the router's `unwrapWHBAR`, emits events
+- [x] Per-network address config in one file (`utils/saucerswap.ts`)
+- [x] Hardhat deploy script and unit tests (14 passing)
+- [x] A script that runs one real testnet swap and prints the Hashscan link (`npm run hardhat:swap-testnet`), written but **not yet run**: needs a funded testnet key
+- [x] A testnet pool with real reserves: V2 pool 0.0.2661057 (WHBAR/SAUCE, 0.30%)
 
 ### Phase 2: frontend (`packages/nextjs`)
 - [ ] Swap widget: token select, quote (QuoterV2), slippage, execute
