@@ -36,7 +36,7 @@ jobs:
         run: |
           npm run hardhat:chain &
           timeout 60s bash -c 'until curl -s -X POST http://127.0.0.1:8545 -H "Content-Type: application/json" --data "{\"jsonrpc\":\"2.0\",\"method\":\"web3_clientVersion\",\"params\":[],\"id\":1}" >/dev/null; do sleep 2; done'
-          npm run hardhat:deploy --network localhost
+          npm run hardhat:deploy -- --network localhost
 
       - name: Run nextjs lint
         run: npm run next:lint --max-warnings=0
