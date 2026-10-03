@@ -1,16 +1,20 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  ArrowPathIcon,
   ArrowsRightLeftIcon,
+  BanknotesIcon,
   Bars3Icon,
   BookOpenIcon,
   BugAntIcon,
+  ChevronDownIcon,
   CircleStackIcon,
   ClockIcon,
+  CreditCardIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import { RainbowKitCustomConnectButton } from "~~/components/scaffold-hbar";
@@ -22,16 +26,15 @@ type HeaderMenuLink = {
   icon?: React.ReactNode;
 };
 
+/** The use cases the kit ships. They sit in one dropdown so the navbar stays short. */
+const useCaseLinks: HeaderMenuLink[] = [
+  { label: "Swap", href: "/swap", icon: <ArrowsRightLeftIcon className="h-4 w-4" /> },
+  { label: "Pay", href: "/pay", icon: <CreditCardIcon className="h-4 w-4" /> },
+  { label: "Auto-buy", href: "/dca", icon: <ArrowPathIcon className="h-4 w-4" /> },
+  { label: "Buy a token", href: "/buy", icon: <BanknotesIcon className="h-4 w-4" /> },
+];
+
 export const menuLinks: HeaderMenuLink[] = [
-  {
-    label: "Home",
-    href: "/",
-  },
-  {
-    label: "Swap",
-    href: "/swap",
-    icon: <ArrowsRightLeftIcon className="h-4 w-4" />,
-  },
   {
     label: "Pools",
     href: "/pools",
@@ -59,11 +62,48 @@ export const menuLinks: HeaderMenuLink[] = [
   },
 ];
 
+const linkClass = (isActive: boolean) =>
+  `${isActive ? "bg-primary/10 text-primary font-semibold" : "hover:bg-primary/5"} py-1.5 px-3 text-sm rounded-full gap-2 grid grid-flow-col transition-colors`;
+
+/** "Use cases" with its links. Closes after you pick one. */
+const UseCasesMenu = () => {
+  const pathname = usePathname();
+  const ref = useRef<HTMLDetailsElement>(null);
+  const isActive = useCaseLinks.some(link => link.href === pathname);
+
+  useEffect(() => {
+    ref.current?.removeAttribute("open");
+  }, [pathname]);
+  useOutsideClick(ref, () => ref.current?.removeAttribute("open"));
+
+  return (
+    <li>
+      <details ref={ref}>
+        <summary className={`${linkClass(isActive)} !grid-flow-col items-center`}>
+          <span>Use cases</span>
+          <ChevronDownIcon className="h-3 w-3" />
+        </summary>
+        <ul className="z-30 w-48 rounded-box bg-base-100 p-2 shadow-lg">
+          {useCaseLinks.map(({ label, href, icon }) => (
+            <li key={href}>
+              <Link href={href} className={linkClass(pathname === href)}>
+                {icon}
+                <span>{label}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </details>
+    </li>
+  );
+};
+
 export const HeaderMenuLinks = () => {
   const pathname = usePathname();
 
   return (
     <>
+      <UseCasesMenu />
       {menuLinks.map(({ label, href, icon }) => {
         const isActive = pathname === href;
         return (
@@ -116,7 +156,7 @@ export const Header = () => {
             <Image alt="Hedera icon" className="cursor-pointer hidden dark:block" fill src="/Hedera-Icon-White.svg" />
           </div>
           <div className="flex flex-col">
-            <span className="font-bold leading-tight text-base">Scaffold-HBAR</span>
+            <span className="font-bold leading-tight text-base">hedera-swap-kit</span>
             <span className="text-[10px] tracking-wider uppercase text-base-content/50 font-medium">
               Built on Hedera
             </span>

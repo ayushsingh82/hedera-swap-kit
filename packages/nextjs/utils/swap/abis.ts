@@ -34,3 +34,12 @@ export const erc20Abi = parseAbi([
 
 /** HIP-719: an account associates itself with an HTS token by calling `associate()` on the token's address. */
 export const hrc719Abi = parseAbi(["function associate() returns (uint256 responseCode)"]);
+
+export const scheduledSwapAbi = parseAbi([
+  "function automationFeePerRun() view returns (uint256)",
+  "function getPlan(uint256 id) view returns ((address owner, address recipient, bytes path, uint256 amountPerRun, uint256 minOutPerRun, uint256 interval, uint256 runsLeft, uint256 runsDone, uint256 budget, address schedule, bool active))",
+  "function create(bytes path, address recipient, uint256 amountPerRun, uint256 minOutPerRun, uint256 interval, uint256 runs) payable returns (uint256 id)",
+  "function cancel(uint256 id)",
+  "function resume(uint256 id)",
+  "event PlanCreated(uint256 indexed id, address indexed owner, address indexed recipient, uint256 amountPerRun, uint256 interval, uint256 runs)",
+]);

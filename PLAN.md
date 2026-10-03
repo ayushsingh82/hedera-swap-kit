@@ -107,6 +107,65 @@ Quality:
 - [x] Hardhat contract tests: 26 passing
 - [ ] `PLAN.md`, `.agents/` and `.claude/` ship inside generated projects. Decide whether to keep them
 
+## Winning plan (v2): from a swap demo to a money-movement kit
+
+Why the current kit will not win on its own: the rubric pays for **load-bearing integration (35)**, **docs (30)** and **service depth (15)**, and says composing services beats a single one. We have one contract and HTS association. Many entrants will ship "a swap UI". We stand out by being the kit that **moves value on Hedera in any token, on a schedule, with no keeper**, with proof for every claim.
+
+**Positioning.** hedera-swap-kit: swap, pay, pay out and schedule on Hedera. SaucerSwap is the engine, HTS is the asset layer, the Hedera Schedule Service (HSS) is the automation layer.
+
+### Use cases (each is a page, a contract path, a docs guide and a Hashscan proof)
+| Use case | Route | What it does | Services |
+| --- | --- | --- | --- |
+| **Swap** (done) | `/swap` | HBAR, token and token to HBAR swaps | SaucerSwap, HTS, mirror node |
+| **Pay in any token** | `/pay` | Buyer pays with any HTS token, merchant receives the token they choose. Payment links: `/pay?to=0x..&token=0.0.x&amount=10&order=123` | SaucerSwap, HTS, mirror node |
+| **Payouts** | `/payouts` | One funding token paid out to many recipients, each in their preferred token. CSV in, quotes per row, one batch | SaucerSwap, HTS |
+| **Auto-buy (DCA)** | `/dca` | "Buy 10 HBAR of SAUCE every day for 7 days." The contract schedules its own next run through HSS. No bot | **HSS**, SaucerSwap, HTS |
+| **Buy a token** | `/buy` | Embeddable on-ramp for a project's own token: `SwapWidget` with a fixed output token, set by env or query | SaucerSwap |
+
+The DCA with HSS is the headline. It is the only one that needs a Hedera-only capability, and the proof (a swap executed by the network itself, not by our wallet) is something a judge can check on Hashscan.
+
+### Command line
+Root npm scripts that work after `npm create scaffold-hbar@latest -- --template ayushsingh82/hedera-swap-kit`:
+| Command | Does |
+| --- | --- |
+| `npm run init` | Creates a deployer wallet, writes `.env`, prints the address and the faucet link, checks the balance |
+| `npm run doctor` | Checks Node version, `.env`, balance, deployment, mirror node and SaucerSwap reachability, with a fix hint per failure |
+| `npm run deploy:testnet` | Deploys every contract and records addresses |
+| `npm run demo:swap`, `demo:pay`, `demo:payout`, `demo:dca` | Runs one real testnet transaction per use case and prints the Hashscan link |
+| `npm run dev` | Starts the app |
+
+### Progress (Oct 3)
+- [x] HSS spike: a contract schedules itself and the network runs it. Needs the contract to hold gas limit x price at each run, and a rescheduling run uses about 1.4M gas
+- [x] `/buy`, `/pay` and the Use cases menu
+- [x] `ScheduledSwap` contract (HSS auto-buy) with 17 tests against a mock Schedule Service, and its deploy script
+- [x] `/dca` page: form with cost breakdown, plans list with cancel, resume and a Hashscan link to the next run
+- [ ] Deploy `ScheduledSwap` to testnet and run a real 3-run plan (needs about 15 HBAR in the deployer), then remove the `as never` cast in `useScheduledSwap.ts`
+- [ ] `/payouts`, CLI scripts, per-use-case docs
+
+### Build order (cut from the bottom; docs are never cut)
+1. **Gate first.** Make the repo public, re-run the template command from GitHub, keep CI green. A failed gate means no prize, whatever else we build.
+2. **HSS spike (1 to 2 hours).** Prove a contract can `scheduleCall` itself on testnet. If it fails, DCA falls back to `executeSwap` callable by anyone (keeper style) and we document it. Decide before building the rest.
+3. **`PaymentRouter` contract + `/pay`.** Pay in any token, with `orderId` in the event so a merchant can match payments.
+4. **`ScheduledSwap` contract + `/dca`** (HSS self-rescheduling swap, runs read from the mirror node).
+5. **Payouts:** `payout(recipients, amounts, paths)` and `/payouts` (CSV).
+6. **`/buy` widget:** configuration of `SwapWidget`, about an hour.
+7. **CLI scripts:** `init`, `doctor`, `deploy:testnet`, `demo:*`.
+8. **Docs:** one guide per use case (in `docs/` and `/docs`), a 5-minute tutorial, an architecture diagram per flow, a "proof" table with one Hashscan link per use case, AGENTS.md recipes ("add a use case", "swap the DEX").
+9. **Polish:** tests for every new contract path, remove `PLAN.md` and internal notes from the template, mobile check, screenshots or a short screen recording.
+
+### What judges should see
+- Scaffolds and runs in one command, then `npm run init` and `npm run doctor` tell you exactly what is missing.
+- Four Hashscan links, one per use case, and one of them is a swap the network executed on its own.
+- Each use case has a guide that takes a stranger from zero to a working transaction.
+- Tests pass, lint is clean, no dead code.
+
+### Risks
+- **HSS on testnet** may behave differently from the docs. Mitigation: the spike comes first, with a documented fallback.
+- **Thin testnet liquidity** (only a few pools). Mitigation: demos use the WHBAR/SAUCE pool that has reserves.
+- **Scope.** Five use cases in about 45 hours. Mitigation: `/buy` is configuration, payouts reuse the swap path code, and the cut order above applies.
+- **Gas cost.** Token to HBAR costs about 1.4 HBAR on testnet. Demos should prefer HBAR to token and token to token.
+- Do not use smart contract calls inside an Atomic Batch (deprecated).
+
 ### Phase 5: submit
 - [ ] Make the repo public (it is private now), registration confirmed
 - [ ] Submission form: repo link, Hashscan link, dev-ex survey

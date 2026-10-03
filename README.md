@@ -13,6 +13,101 @@ It is a swap toolkit, not a single demo page:
 | --- | --- |
 | ![Swap page on desktop](docs/images/swap-desktop.png) | <img src="docs/images/swap-mobile.png" alt="Swap page on mobile" width="260"> |
 
+## What you get
+
+### Swapping
+
+| Feature | Details |
+| --- | --- |
+| **Three swap types** | HBAR to token, token to token and token to HBAR, through SaucerSwap V2. |
+| **Live quotes** | QuoterV2 quotes refreshed every 15 seconds, with the minimum received after slippage. |
+| **Slippage and deadline** | Presets (0.1%, 0.5%, 1%), a custom value up to 50%, and a transaction deadline. |
+| **Price impact and route** | Shows the route (direct pool, or two hops through WHBAR) and warns when the impact is high. |
+| **One-click association** | Detects when your account (to receive) or `SwapHelper` (to pay) is not associated with a token, and associates in one click. |
+| **Transaction status** | Approving, swapping and confirming states, with a Hashscan link for every transaction. |
+| **Integrator fee** | Optional fee in the contract (0 by default, at most 1%) that accrues for the owner. |
+| **Swap for someone else** | Every swap takes a `recipient`, so an app can swap on behalf of a user. |
+
+### Data and pages
+
+| Feature | Details |
+| --- | --- |
+| **Token list** | Every SaucerSwap token with a V2 pool, with icon, price and your balance, searchable. |
+| **Pools browser** | V2 pools with fee tier, reserves and TVL, ordered by TVL. |
+| **Swap history** | Your swaps through `SwapHelper`, read from the mirror node. |
+| **Testnet and mainnet** | One config, chosen by the wallet's chain. |
+| **Payment links** | Share a `/pay` link; the buyer pays in any token. |
+| **Auto-buy** | Recurring purchases run by the Hedera Schedule Service, with progress, cancel and resume. |
+| **In-app docs** | A `/docs` section with a sidebar: quickstart, how swaps work, components, hooks, customize, architecture, troubleshooting. |
+
+### Use cases
+
+| Use case | Route | Status | How it works |
+| --- | --- | --- | --- |
+| **Swap** | `/swap` | Done | HBAR to token, token to token, token to HBAR. |
+| **Pay in any token** | `/pay` | Done | The buyer pays with any token and the receiver gets the token they chose. Build a link on `/pay`, share it, and the buyer lands on a checkout for it. The receiver address is passed as the swap `recipient`. |
+| **Buy a token** | `/buy` | Done | A swap widget with a fixed output token, for a project's own token page. `/buy?token=0.0.1183558` or set `NEXT_PUBLIC_BUY_TOKEN`. |
+| **Payouts** | `/payouts` | Planned | One funding token paid out to many recipients, each in their preferred token. |
+| **Auto-buy (DCA)** | `/dca` | Built, live testnet proof pending | Buy a token on a schedule. `ScheduledSwap` schedules each run through the Hedera Schedule Service, and each run schedules the next. No bot. |
+
+**Pay links.** `/pay?to=0x...&token=0.0.1183558&label=Cafe&order=1042` opens a checkout. `to` is the receiver, `token` is the token they receive (a Hedera id or `HBAR`), `label` and `order` are shown to the buyer. The receiver must be associated with the token, and the checkout tells the buyer if they are not. A swap sets the amount the buyer pays, not the amount the receiver gets, so for now the receiver gets the quoted amount at the time of payment.
+
+### Auto-buy with the Hedera Schedule Service
+
+`ScheduledSwap` buys a token on a schedule with no keeper bot. It is the one use case that needs a Hedera-only capability: the Hedera Schedule Service (HSS, system contract `0x16b`) lets a contract schedule a call to itself, and the network runs it at the time you chose.
+
+1. **Create a plan** on `/dca`: token, HBAR per run, how often, how many runs. You send the swap budget plus an automation fee for each run. The contract schedules the first run in the same transaction.
+2. **Each run** swaps `amountPerRun` HBAR through `SwapHelper`, sends the tokens to you, and schedules the next run before it ends.
+3. **Progress** shows on `/dca`, with a Hashscan link to the next scheduled run.
+4. **Cancel** any time for a refund of the unspent budget.
+
+How it handles trouble:
+- A swap that fails (the price moved below your minimum) is skipped. Its HBAR stays in your plan and the plan carries on.
+- If HSS refuses to schedule the next run, the plan pauses and you can resume it.
+- Only the contract itself can trigger a run, and the owner can never withdraw escrowed budget.
+
+What it costs (measured on testnet, so check mainnet before relying on it):
+
+| Cost | Amount | Why |
+| --- | --- | --- |
+| Creating a plan | about 1.5M gas, about 1.3 HBAR | Scheduling the first run is gas heavy |
+| Automation fee | 1.3 HBAR per run (set by the owner) | The contract pays the network when each scheduled call executes |
+| Gas limit of a run that reschedules | 2M | Rescheduling used about 1.4M gas |
+| Gas limit of the final run | 0.8M | It only swaps, so it needs far less balance |
+
+The contract must hold the gas limit times the gas price (84 tinybar per gas on testnet) when a run executes, even if the run uses less. That is why the fee is collected up front.
+
+Tests run against a mock Schedule Service (`MockScheduleService`) placed at `0x16B`: `npm run hardhat:test`. The first experiment that proved the pattern is in `packages/hardhat/contracts/spike/`.
+
+### Routes and navbar
+
+A standard Scaffold-HBAR app has three navbar items: **Home**, **Debug Contracts** and **Block Explorer**. This template changes them:
+
+| Navbar item | Route | In plain Scaffold-HBAR | In this template |
+| --- | --- | --- | --- |
+| Use cases (dropdown) | `/swap`, `/pay`, `/dca`, `/buy` | no | **New.** Swap, Pay in any token, Auto-buy, Buy a token. Grouped so the navbar stays short. |
+| Pools | `/pools` | no | **New.** SaucerSwap V2 pools. |
+| History | `/history` | no | **New.** Your recent swaps. |
+| Docs | `/docs` | no | **New.** In-app documentation. |
+| Debug Contracts | `/debug` | yes | Kept. Calls `SwapHelper` (read `feeBps`, `owner`; as owner `setFee`, withdraw fees). Light-mode text colour fixed. |
+| Block Explorer | `/blockexplorer` | yes | Kept, but it only works against a local Hardhat node. On testnet it points to Hashscan. |
+| Home | `/` | yes | Now a landing page for the template. The logo and name link to it, so there is no separate "Home" item. |
+
+Also: `/api/health` returns `{"status":"ok"}`, and the navbar brand is `hedera-swap-kit` instead of "Scaffold-HBAR".
+
+### Deployed on Hedera testnet
+
+| What | Id | EVM address |
+| --- | --- | --- |
+| **SwapHelper** (this template, deployed) | [`0.0.10836039`](https://hashscan.io/testnet/contract/0.0.10836039) | `0x206bf34BA9c73dfC14c7847ad202a271c8105b30` |
+| SaucerSwap V2 SwapRouter | [`0.0.1414040`](https://hashscan.io/testnet/contract/0.0.1414040) | `0x0000000000000000000000000000000000159398` |
+| SaucerSwap QuoterV2 | [`0.0.1390002`](https://hashscan.io/testnet/contract/0.0.1390002) | `0x00000000000000000000000000000000001535b2` |
+| WHBAR token (end of every HBAR path) | [`0.0.15058`](https://hashscan.io/testnet/token/0.0.15058) | `0x0000000000000000000000000000000000003aD2` |
+| SAUCE token (used in the proof swap) | [`0.0.1183558`](https://hashscan.io/testnet/token/0.0.1183558) | `0x0000000000000000000000000000000000120f46` |
+| WHBAR/SAUCE pool, 0.30% fee | [`0.0.2661057`](https://hashscan.io/testnet/contract/0.0.2661057) | n/a |
+
+Mainnet ids are in `utils/saucerswap.ts` and `utils/swap/config.ts`: router `0.0.3949434`, quoter `0.0.3949424`, WHBAR token `0.0.1456986`. `SwapHelper` is not deployed on mainnet.
+
 ## Why
 
 Swapping on Hedera is not the same as swapping on Ethereum. A plain Uniswap-style integration fails in three places:
@@ -136,13 +231,18 @@ More detail and diagrams: [docs/architecture.md](docs/architecture.md).
 packages/
   hardhat/
     contracts/SwapHelper.sol       the swap entry point (+ interfaces/, mocks/)
+    contracts/ScheduledSwap.sol    auto-buy plans run by the Hedera Schedule Service
+    contracts/spike/               the first Schedule Service experiment
     deploy/00_deploy_swap_helper.ts
+    deploy/01_deploy_scheduled_swap.ts
     scripts/testnetSwap.ts         one real testnet swap, prints a Hashscan link
     test/SwapHelper.test.ts        contract tests
+    test/ScheduledSwap.test.ts     auto-buy tests (mock Schedule Service)
     utils/saucerswap.ts            router, quoter and WHBAR addresses per network
   nextjs/
-    app/                           pages: /, /swap, /pools, /history, /docs, /api/health
+    app/                           pages: /, /swap, /pay, /buy, /dca, /pools, /history, /docs, /api/health
     components/swap/               the component kit
+    components/use-cases/          payment link builder, auto-buy form and plans
     hooks/swap/                    the hooks
     utils/swap/                    pure logic (math, route, tokens, config) + tests
 docs/                              components, customize, architecture
