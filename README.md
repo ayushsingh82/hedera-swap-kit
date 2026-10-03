@@ -1,78 +1,195 @@
-# Scaffold-HBAR — Blank starter
+# hedera-swap-kit
 
-Minimal Hedera dApp baseline: Next.js, Hardhat or Foundry, and Hedera networks (testnet, mainnet, local fork). No opinionated product UI — you add the app on top.
+A [Scaffold-HBAR](https://docs.hedera.com/solutions/tools/scaffold-hbar/index) template for apps that need **token swaps on Hedera**: wallets, payment apps, game stores and DeFi front ends.
 
-CLI key: `blank` (branch `templates/blank-template`).
+It is a swap toolkit, not a single demo page:
 
-The full product guide — CLI flags, npm run vs npm, deploy, and verify — lives in [Scaffold HBAR on Hedera docs](https://docs.hedera.com/solutions/tools/scaffold-hbar/index). This README is what is specific to **this** template.
+- **`SwapHelper.sol`** wraps the [SaucerSwap V2](https://docs.saucerswap.finance) router and handles the Hedera-specific problems EVM developers hit: HTS token association, native HBAR vs WHBAR, and tinybar vs weibar.
+- **A React component kit and hooks** (`SwapWidget`, `TokenSelect`, `useQuote`, `useSwap` and more) you can drop into your own app.
+- **A demo app** built from those parts: `/swap`, `/pools`, `/history`.
+- An optional **integrator fee** in the contract, so you can monetize an app built on it.
 
-## What's in this template
+> Screenshot: _TODO, add `docs/images/swap.png` after the first wallet run on testnet._
 
-- Next.js App Router with wallet connect, **Debug Contracts**, and a local block explorer
-- Sample HTS contracts (`HederaToken`, `HtsTokenCreator`) so Debug Contracts has something to call
-- Hardhat and Foundry packages (the CLI can drop one)
-- Hashio RPC + Mirror Node config for Hedera testnet and mainnet
-- Package manager: npm (recommended) or npm — see `template.json`
+## Why
 
-Create a project from this template:
+Swapping on Hedera is not the same as swapping on Ethereum. A plain Uniswap-style integration fails in three places:
 
-```bash
-npm run create scaffold-hbar@latest -- --template blank
-```
+1. An account or contract cannot hold an HTS token until it is **associated** with it.
+2. Native HBAR is not an ERC-20. SaucerSwap trades **WHBAR**, and the router has to wrap and unwrap it for you.
+3. HBAR has **8 decimals** (tinybar) inside contracts but **18** (weibar) in JSON-RPC `msg.value`.
 
-`npx create-scaffold-hbar@latest --template blank` is equivalent. The CLI also asks for frontend, Solidity framework, network, and package manager.
+This template does all three for you and explains them below.
 
-## Work from this repository
-
-This branch uses npm run workspaces, so clone-and-run needs npm. Apps created with the CLI can use npm (default) or npm; see the [docs](https://docs.hedera.com/solutions/tools/scaffold-hbar/index).
+## Quickstart
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) ≥ 20.18.3
-- [Git](https://git-scm.com/) with `user.name` and `user.email` configured
-- [npm](https://www.npmjs.com/) (default; required if you clone this repo) or npm run if you scaffolded with the CLI. For npm, install via Corepack:
-  ```bash
-  corepack enable && corepack prepare npm@stable --activate
-  ```
-- **If using Foundry:** [Foundry](https://book.getfoundry.sh/getting-started/installation) (`forge`, `cast`, `anvil`)
+- [Node.js](https://nodejs.org/) 20.18.3 or newer
+- [Git](https://git-scm.com/)
+- A Hedera testnet account with some HBAR from the [faucet](https://portal.hedera.com/faucet)
+- Optional: a [WalletConnect project id](https://cloud.walletconnect.com) for the wallet modal
 
-### Quick start
+### Create a project from this template
 
 ```bash
-npm install
-
-# Terminal 1: local Hedera-forked node
-npm run hardhat:chain
-
-# Terminal 2: deploy to that node (8545)
-npm run hardhat:deploy --network localhost
-
-# Terminal 3: Next.js app
-npm run next:start
+npm create scaffold-hbar@latest my-swap-app -- --template ayushsingh82/hedera-swap-kit
+cd my-swap-app
+npm install --legacy-peer-deps
 ```
 
-Open [http://localhost:3000](http://localhost:3000) and use the **Debug Contracts** page.
+The CLI asks for frontend, Solidity framework, network and package manager. This template supports Next.js and Hardhat. To skip the prompts (CI, scripts), add `--frontend nextjs-app --solidity-framework hardhat --network testnet --package-manager npm --ci`.
 
-Frontend only (no local chain):
+Or clone this repository and run `npm install --legacy-peer-deps`.
+
+### Run it on testnet
 
 ```bash
-npm install
-npm run next:dev
+npm install --legacy-peer-deps
+
+# 1. Set up a deployer account (encrypted key, stored in packages/hardhat/.env)
+npm run hardhat:account:generate      # or hardhat:account:import
+# Fund the printed address from https://portal.hedera.com/faucet
+
+# 2. Deploy SwapHelper to Hedera testnet
+npm run hardhat:deploy -- --network hederaTestnet
+
+# 3. Start the app
+npm run next:dev                      # http://localhost:3000
 ```
 
-`npm run hardhat:deploy` without `--network localhost` targets the in-process `hardhat` network, not the long-running fork. Local Hardhat and Foundry workflows are in [`packages/hardhat/README.md`](packages/hardhat/README.md) and [`packages/foundry/README.md`](packages/foundry/README.md). Deploy and verify on testnet/mainnet: [Hedera docs](https://docs.hedera.com/solutions/tools/scaffold-hbar/index#deploying-to-testnet).
+Open `/swap`, connect a wallet on Hedera Testnet, pick a token, and swap. If a token needs association, the widget shows a one-click **Associate** button first.
 
-## Project layout
+### Run a swap from the command line
 
-- **packages/hardhat** — Hardhat config, contracts, `deploy/` scripts, tests
-- **packages/foundry** — Forge config, contracts, `script/` deploy scripts, tests
-- **packages/nextjs** — Next.js app, RainbowKit, wagmi, scaffold config
+```bash
+npm run hardhat:swap-testnet
+```
 
-Network and RPC URLs are in `packages/hardhat/hardhat.config.ts` and `packages/foundry/foundry.toml` respectively.
+It swaps 1 HBAR for SAUCE through the deployed `SwapHelper` and prints a Hashscan link. It needs `__RUNTIME_DEPLOYER_PRIVATE_KEY` in `packages/hardhat/.env`.
+
+### Proof of a real testnet swap
+
+> Hashscan link: _TODO, paste the link printed by `npm run hardhat:swap-testnet` once it has run._
+
+## Environment variables
+
+| Variable | File | Purpose |
+| --- | --- | --- |
+| `HEDERA_RPC_URL` | `packages/hardhat/.env` | JSON-RPC endpoint for deploys. Defaults to Hashio testnet. |
+| `DEPLOYER_PRIVATE_KEY_ENCRYPTED` | `packages/hardhat/.env` | Written by `hardhat:account:generate` or `:import`. Do not fill by hand. |
+| `__RUNTIME_DEPLOYER_PRIVATE_KEY` | `packages/hardhat/.env` | Optional ECDSA key (`0x…`) for non-interactive scripts such as `hardhat:swap-testnet`. Use a throwaway testnet key. |
+| `NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID` | `packages/nextjs/.env` | WalletConnect project id. |
+| `NEXT_PUBLIC_HEDERA_TESTNET_RPC_URL` | `packages/nextjs/.env` | Overrides the testnet RPC the app reads from. |
+| `NEXT_PUBLIC_HEDERA_MAINNET_RPC_URL` | `packages/nextjs/.env` | Overrides the mainnet RPC. |
+
+`.env` files are git-ignored. Never commit a private key.
+
+## How swaps work on Hedera
+
+### The path
+
+SaucerSwap V2 describes a route as a packed byte string: `token (20 bytes) · pool fee (3 bytes) · token · …`. `SwapHelper.encodePath` builds it, and so does `encodePath` in `utils/swap/route.ts`. Pool fees are in hundredths of a basis point: `500` is 0.05%, `3000` is 0.30%, `10000` is 1%.
+
+### WHBAR
+
+Pools hold **WHBAR**, an HTS token that stands in for HBAR. You never wrap by hand:
+
+- **HBAR in:** the swap sends HBAR as `msg.value` and the router wraps it. The path must start with the WHBAR token.
+- **HBAR out:** the router swaps to WHBAR, then `unwrapWHBAR` turns it into HBAR for `SwapHelper`, which forwards it. The path must end with the WHBAR token.
+
+The WHBAR address used in paths is the **token** (`0.0.15058` on testnet), not the WHBAR contract.
+
+### Association
+
+On Hedera an account must be associated with an HTS token before it can receive or hold it.
+
+| You are… | Who must be associated | How |
+| --- | --- | --- |
+| Swapping **to** a token | The **recipient** (usually the connected wallet) | `associate()` on the token (HRC-719). The widget's **Associate** button does it. |
+| Swapping **from** a token | **`SwapHelper`**, because it pulls the token before swapping | `SwapHelper.associate(token)`. Anyone can call it once per token. |
+| Using native HBAR | Nobody | Not needed. |
+
+### Tinybar vs weibar
+
+HBAR has 8 decimals (tinybar) as an HTS and contract amount, but JSON-RPC `msg.value` uses 18 decimals (weibar) so EVM tooling works. One tinybar is `10^10` weibar. The kit handles it in two places:
+
+- `useSwap` sends `msg.value = amountIn * WEIBAR_PER_TINYBAR`.
+- The quoter and every `amountIn` / `amountOut` in the kit are in **tinybar**.
+
+If you write your own integration, convert at the boundary and nowhere else.
+
+### The integrator fee
+
+`SwapHelper.feeBps` (0 by default, at most 100 = 1%) is taken from the input amount and kept in the contract. The owner collects it with `withdrawTokenFees` or `withdrawHbarFees`. It accrues instead of being paid out per swap because a transfer to an unassociated recipient reverts on Hedera.
+
+More detail and diagrams: [docs/architecture.md](docs/architecture.md).
+
+## Project structure
+
+```
+packages/
+  hardhat/
+    contracts/SwapHelper.sol       the swap entry point (+ interfaces/, mocks/)
+    deploy/00_deploy_swap_helper.ts
+    scripts/testnetSwap.ts         one real testnet swap, prints a Hashscan link
+    test/SwapHelper.test.ts        contract tests
+    utils/saucerswap.ts            router, quoter and WHBAR addresses per network
+  nextjs/
+    app/                           pages: /, /swap, /pools, /history, /docs, /api/health
+    components/swap/               the component kit
+    hooks/swap/                    the hooks
+    utils/swap/                    pure logic (math, route, tokens, config) + tests
+docs/                              components, customize, architecture
+```
+
+## Commands
+
+| Command | What it does |
+| --- | --- |
+| `npm run hardhat:compile` | Compile contracts |
+| `npm run hardhat:test` | Contract tests |
+| `npm run hardhat:deploy -- --network hederaTestnet` | Deploy `SwapHelper` |
+| `npm run hardhat:swap-testnet` | Run one real swap |
+| `npm run next:dev` | Start the app |
+| `npm run next:test` | Unit tests for the swap logic |
+| `LIVE=1 npm run next:test` | Adds a live testnet quote test |
+| `npm run next:build` | Production build |
+| `npm run next:check-types` | Type check |
+| `npm run hardhat:lint`, `npm run next:lint` | Lint |
+
+## Docs
+
+- [Components and hooks](docs/components.md): props, examples, usage
+- [Customize](docs/customize.md): swap the DEX, add a token, change the fee, mainnet
+- [Architecture](docs/architecture.md): contract and frontend flows
+- [AGENTS.md](AGENTS.md): briefing for AI coding agents
+
+## Troubleshooting
+
+**"SwapHelper is not deployed on Hedera Testnet."** Run `npm run hardhat:deploy -- --network hederaTestnet`. The deploy writes the address to `packages/nextjs/contracts/deployedContracts.ts`.
+
+**The swap reverts with no reason.** Check, in order: the recipient is associated with the output token; for token inputs, `SwapHelper` is associated with the input token and you approved it; the deadline has not passed; slippage is not too tight for a thin pool.
+
+**"No route".** No pool with liquidity connects the pair. Testnet liquidity is thin: try HBAR/SAUCE, or see [docs/customize.md](docs/customize.md#add-a-pool).
+
+**Build fails resolving `@x402/*`.** Already handled in `next.config.ts`. If you upgrade RainbowKit and it returns, keep that webpack alias.
+
+**`INSUFFICIENT_PAYER_BALANCE` or out of gas.** The account needs HBAR for fees. When you swap your whole balance the widget keeps 1 HBAR back for this.
+
+**Wrong network.** The widget reads the wallet's chain. Switch to Hedera Testnet (296) or Mainnet (295).
+
+## Status
+
+Tested: contract unit tests, swap-logic unit tests, type check and production build. Not yet exercised by the maintainers: the full wallet-driven flow on testnet and a mainnet deploy. See [PLAN.md](PLAN.md).
 
 ## Links
 
 - [Scaffold HBAR docs](https://docs.hedera.com/solutions/tools/scaffold-hbar/index)
-- [create-scaffold-hbar](https://github.com/hedera-dev/create-scaffold-hbar) — CLI
+- [SaucerSwap developer docs](https://docs.saucerswap.finance)
 - [Hedera Portal faucet](https://portal.hedera.com/faucet)
 - [HashScan](https://hashscan.io/)
+
+## License
+
+MIT, see [LICENCE](LICENCE).

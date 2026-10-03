@@ -51,7 +51,7 @@ Kept from `create-scaffold-hbar` so the CLI scripts keep working:
 - [x] `npm create scaffold-hbar@latest` with the `blank` template (Next.js, Hardhat, testnet, npm)
 - [x] `template.json` manifest, MIT licence with our copyright line, `.env` ignored
 - [x] Removed the unused Foundry submodules file
-- [x] `origin` set to `ayushsingh82/hbar-template`
+- [x] `origin` set to `ayushsingh82/hedera-swap-kit`
 
 ### Phase 1: contracts (`packages/hardhat`) (done except the live testnet swap)
 - [x] Replace the blank template's sample contracts with `SwapHelper.sol`: wraps the V2 SwapRouter `exactInput`, HBAR in via msg.value, HBAR out via the router's `unwrapWHBAR`, emits events
@@ -87,23 +87,26 @@ Quality:
 - [ ] Mobile layout check in a real browser
 
 ### Phase 3: docs (30 points, treated as a product)
-- [ ] `README.md`: what and why, screenshot, prerequisites, quickstart, env vars, architecture diagram, "how swaps work on Hedera" (association, WHBAR, tinybar vs weibar), project structure, troubleshooting, Hashscan proof link
-- [ ] `docs/components.md`: every component and hook with props, example and screenshot
-- [ ] `docs/customize.md`: swap the DEX out, add a token, change the fee, add a pool, go to mainnet
-- [ ] `docs/architecture.md`: contract and frontend flow diagrams
-- [ ] `AGENTS.md`: repo map, commands, conventions, do and don't for AI agents (replace the stale scaffold text)
+- [x] `README.md` (written; screenshot and Hashscan link are TODO placeholders): what and why, screenshot, prerequisites, quickstart, env vars, architecture diagram, "how swaps work on Hedera" (association, WHBAR, tinybar vs weibar), project structure, troubleshooting, Hashscan proof link
+- [x] `docs/components.md`: every component and hook with props and examples (screenshots TODO)
+- [x] `docs/customize.md`: swap the DEX out, add a token, change the fee, add a pool, go to mainnet
+- [x] `docs/architecture.md`: contract and frontend flow diagrams
+- [x] `AGENTS.md`: repo map, commands, conventions, do and don't for AI agents (replace the stale scaffold text)
 - [ ] Comments only where the code is non-obvious
 
-### Phase 4: gate verification
-- [ ] `npm create scaffold-hbar@latest -- --template ayushsingh82/hbar-template` from a clean directory
-- [ ] install, lint, build pass clean
-- [ ] app boots, core routes return 200
-- [ ] `template.json` valid, README and AGENTS present, MIT licence
-- [ ] no committed secrets or `.env`
-- [ ] Hashscan link in the README
+### Phase 4: gate verification (run Oct 3 on a clean scaffold; uncommitted changes)
+- [x] Template command run from a clean directory with `--ci`. **Found and fixed a gate-breaking bug:** `template.json` had no top-level `name`, which the CLI requires, so scaffolding failed. Added `name`, `description`, `version`, `requirements` and an `outro`
+- [ ] Re-run the command against GitHub once `template.json` is on `main` and the repo is public. The repo is **private**, so the public command returns 404 (it only worked locally with `CREATE_SCAFFOLD_HBAR_TEMPLATE_DIR` and with a `gh` token via `GIGET_AUTH`)
+- [x] `npm install --legacy-peer-deps`, `next:lint`, `next:check-types`, 18 unit tests and `next:build` pass in the clean app. `hardhat:lint` has 0 errors and 3 warnings (CI does not fail on warnings)
+- [x] App boots; `/`, `/swap`, `/pools`, `/history`, `/docs`, `/debug` and `/api/health` return 200
+- [x] `template.json` valid, README and AGENTS present, MIT licence with the original and our copyright lines
+- [x] No committed `.env` or keystore. The only key-like string is the public Hardhat default account in `hardhat.config.ts`
+- [ ] Hashscan link in the README: needs `npm run hardhat:swap-testnet` with a funded key
+- [ ] Hardhat contract tests were not re-run in the clean app
+- [ ] `PLAN.md`, `.agents/` and `.claude/` ship inside generated projects. Decide whether to keep them
 
 ### Phase 5: submit
-- [ ] Public repo, registration confirmed
+- [ ] Make the repo public (it is private now), registration confirmed
 - [ ] Submission form: repo link, Hashscan link, dev-ex survey
 
 ## Timeline
