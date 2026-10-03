@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import {
   ArrowsRightLeftIcon,
   Bars3Icon,
+  BookOpenIcon,
   BugAntIcon,
   CircleStackIcon,
   ClockIcon,
@@ -40,6 +41,11 @@ export const menuLinks: HeaderMenuLink[] = [
     label: "History",
     href: "/history",
     icon: <ClockIcon className="h-4 w-4" />,
+  },
+  {
+    label: "Docs",
+    href: "/docs",
+    icon: <BookOpenIcon className="h-4 w-4" />,
   },
   {
     label: "Debug Contracts",

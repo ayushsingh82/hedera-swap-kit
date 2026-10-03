@@ -1,4 +1,7 @@
 {
+  "name": "hedera-swap-kit",
+  "description": "Token swaps on Hedera through SaucerSwap V2: a SwapHelper contract, a React swap component kit and hooks, and a demo app.",
+  "version": "0.1.0",
   "create-scaffold-hbar": {
     "capabilities": {
       "frontend": ["nextjs-app"],
@@ -9,6 +12,22 @@
       "frontend": "nextjs-app",
       "solidityFramework": "hardhat",
       "packageManager": "npm"
+    },
+    "requirements": {
+      "node": ">=20.18.3"
+    },
+    "outro": {
+      "sections": [
+        {
+          "title": "Deploy and run",
+          "steps": [
+            { "label": "Create a deployer account", "command": "{run:hardhat:account:generate}" },
+            { "label": "Fund it with testnet HBAR", "url": "https://portal.hedera.com/faucet" },
+            { "label": "Deploy SwapHelper to testnet", "command": "{run:hardhat:deploy} -- --network hederaTestnet" },
+            { "label": "Start the app and open /swap", "command": "{run:next:dev}" }
+          ]
+        }
+      ]
     }
   }
 }
