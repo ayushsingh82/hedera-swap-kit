@@ -49,7 +49,7 @@ async function main() {
   console.log(`Quote: ${SWAP_HBAR} HBAR -> ${quoted} SAUCE units (min ${amountOutMinimum})`);
 
   const deadline = Math.floor(Date.now() / 1000) + 600;
-  const tx = await helper.swapExactHbarForTokens(path, amountOutMinimum, deadline, {
+  const tx = await helper.swapExactHbarForTokens(path, signer.address, amountOutMinimum, deadline, {
     value: ethers.parseEther(SWAP_HBAR),
     gasLimit: 1_500_000,
   });

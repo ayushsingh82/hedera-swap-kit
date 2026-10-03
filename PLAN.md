@@ -60,10 +60,11 @@ Kept from `create-scaffold-hbar` so the CLI scripts keep working:
 - [x] A script that runs one real testnet swap and prints the Hashscan link (`npm run hardhat:swap-testnet`), written but **not yet run**: needs a funded testnet key
 - [x] A testnet pool with real reserves: V2 pool 0.0.2661057 (WHBAR/SAUCE, 0.30%)
 
-### Phase 1b: contract extras (Should)
-- [ ] Optional integrator fee: `feeBps` and `feeRecipient` set by an owner, capped at 1%, taken from the input amount, emitted in `Swapped`
-- [ ] `swapExactTokensForTokens` variants that take a `recipient`, so apps can swap on behalf of users
-- [ ] Tests for the fee (zero, capped, withdrawn) and the recipient variants
+### Phase 1b: contract extras (done, uncommitted)
+- [x] Optional integrator fee: `feeBps` set by the owner, capped at 1% (`MAX_FEE_BPS`), taken from the input amount, reported in `Swapped`. The fee stays in the contract and the owner withdraws it with `withdrawTokenFees` / `withdrawHbarFees`. Accruing instead of paying out avoids transfers to an unassociated recipient, which revert on Hedera.
+- [x] Every swap function takes a `recipient`, so apps can swap on behalf of users (a parameter instead of separate variants)
+- [x] `SwapHelper` is `Ownable`; the deploy script passes the deployer as owner
+- [x] 26 unit tests (was 14): fee default, owner only, cap, fee on each swap type, withdrawals, recipient, zero address
 
 ### Phase 2: frontend (`packages/nextjs`)
 Component kit in `components/swap/`, hooks in `hooks/swap/`, each documented in the README.
