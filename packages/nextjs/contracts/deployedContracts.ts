@@ -554,8 +554,713 @@ const deployedContracts = {
     },
   },
   31337: {
+    ScheduledSwap: {
+      address: "0xAd3E631c01798f9aAE4692dabF791a62c226C5D4",
+      abi: [
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "swapHelper_",
+              type: "address",
+            },
+            {
+              internalType: "address",
+              name: "initialOwner",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "tickGas_",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "lastTickGas_",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "automationFeePerRun_",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "surplus",
+              type: "uint256",
+            },
+          ],
+          name: "ExceedsSurplus",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "InvalidPlan",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "NotPaused",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "NotPlanOwner",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "OnlyScheduled",
+          type: "error",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "owner",
+              type: "address",
+            },
+          ],
+          name: "OwnableInvalidOwner",
+          type: "error",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "account",
+              type: "address",
+            },
+          ],
+          name: "OwnableUnauthorizedAccount",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "PathMustStartWithWhbar",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "ReentrancyGuardReentrantCall",
+          type: "error",
+        },
+        {
+          inputs: [
+            {
+              internalType: "int64",
+              name: "responseCode",
+              type: "int64",
+            },
+          ],
+          name: "ScheduleFailed",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "TransferFailed",
+          type: "error",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "expected",
+              type: "uint256",
+            },
+          ],
+          name: "WrongPayment",
+          type: "error",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "address",
+              name: "previousOwner",
+              type: "address",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "newOwner",
+              type: "address",
+            },
+          ],
+          name: "OwnershipTransferred",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "id",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "refund",
+              type: "uint256",
+            },
+          ],
+          name: "PlanCancelled",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "id",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "budgetLeft",
+              type: "uint256",
+            },
+          ],
+          name: "PlanCompleted",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "id",
+              type: "uint256",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "owner",
+              type: "address",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "recipient",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "amountPerRun",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "interval",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "runs",
+              type: "uint256",
+            },
+          ],
+          name: "PlanCreated",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "id",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "int64",
+              name: "responseCode",
+              type: "int64",
+            },
+          ],
+          name: "PlanPaused",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "id",
+              type: "uint256",
+            },
+          ],
+          name: "PlanResumed",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "id",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "run",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "amountIn",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "amountOut",
+              type: "uint256",
+            },
+          ],
+          name: "RunExecuted",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "id",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "run",
+              type: "uint256",
+            },
+          ],
+          name: "RunFailed",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "id",
+              type: "uint256",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "schedule",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "at",
+              type: "uint256",
+            },
+          ],
+          name: "RunScheduled",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "tickGas",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "lastTickGas",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "automationFeePerRun",
+              type: "uint256",
+            },
+          ],
+          name: "SettingsUpdated",
+          type: "event",
+        },
+        {
+          inputs: [],
+          name: "HSS",
+          outputs: [
+            {
+              internalType: "contract IHederaScheduleService",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "automationFeePerRun",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "id",
+              type: "uint256",
+            },
+          ],
+          name: "cancel",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "bytes",
+              name: "path",
+              type: "bytes",
+            },
+            {
+              internalType: "address",
+              name: "recipient",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "amountPerRun",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "minOutPerRun",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "interval",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "runs",
+              type: "uint256",
+            },
+          ],
+          name: "create",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "id",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "payable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "id",
+              type: "uint256",
+            },
+          ],
+          name: "execute",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "id",
+              type: "uint256",
+            },
+          ],
+          name: "getPlan",
+          outputs: [
+            {
+              components: [
+                {
+                  internalType: "address",
+                  name: "owner",
+                  type: "address",
+                },
+                {
+                  internalType: "address",
+                  name: "recipient",
+                  type: "address",
+                },
+                {
+                  internalType: "bytes",
+                  name: "path",
+                  type: "bytes",
+                },
+                {
+                  internalType: "uint256",
+                  name: "amountPerRun",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "minOutPerRun",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "interval",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "runsLeft",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "runsDone",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "budget",
+                  type: "uint256",
+                },
+                {
+                  internalType: "address",
+                  name: "schedule",
+                  type: "address",
+                },
+                {
+                  internalType: "bool",
+                  name: "active",
+                  type: "bool",
+                },
+              ],
+              internalType: "struct ScheduledSwap.Plan",
+              name: "",
+              type: "tuple",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "lastTickGas",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "nextPlanId",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "owner",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "renounceOwnership",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "id",
+              type: "uint256",
+            },
+          ],
+          name: "resume",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "tickGas_",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "lastTickGas_",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "automationFeePerRun_",
+              type: "uint256",
+            },
+          ],
+          name: "setSettings",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "surplus",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "swapHelper",
+          outputs: [
+            {
+              internalType: "contract SwapHelper",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "tickGas",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "totalBudget",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "newOwner",
+              type: "address",
+            },
+          ],
+          name: "transferOwnership",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "to",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "amount",
+              type: "uint256",
+            },
+          ],
+          name: "withdrawSurplus",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          stateMutability: "payable",
+          type: "receive",
+        },
+      ],
+      inheritedFunctions: {
+        owner: "@openzeppelin/contracts/access/Ownable.sol",
+        renounceOwnership: "@openzeppelin/contracts/access/Ownable.sol",
+        transferOwnership: "@openzeppelin/contracts/access/Ownable.sol",
+      },
+      deployedOnBlock: 41295591,
+    },
     SwapHelper: {
-      address: "0xB92257D74B8815EC711071889cB506C8d66A6a06",
+      address: "0x737b8F095E3c575a6Ae5FE1711AdB8F271E20269",
       abi: [
         {
           inputs: [
@@ -567,6 +1272,11 @@ const deployedContracts = {
             {
               internalType: "address",
               name: "whbar_",
+              type: "address",
+            },
+            {
+              internalType: "address",
+              name: "initialOwner",
               type: "address",
             },
           ],
@@ -585,6 +1295,17 @@ const deployedContracts = {
           type: "error",
         },
         {
+          inputs: [
+            {
+              internalType: "uint16",
+              name: "feeBps",
+              type: "uint16",
+            },
+          ],
+          name: "FeeTooHigh",
+          type: "error",
+        },
+        {
           inputs: [],
           name: "HbarTransferFailed",
           type: "error",
@@ -597,6 +1318,28 @@ const deployedContracts = {
         {
           inputs: [],
           name: "NoValueSent",
+          type: "error",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "owner",
+              type: "address",
+            },
+          ],
+          name: "OwnableInvalidOwner",
+          type: "error",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "account",
+              type: "address",
+            },
+          ],
+          name: "OwnableUnauthorizedAccount",
           type: "error",
         },
         {
@@ -626,6 +1369,11 @@ const deployedContracts = {
           type: "error",
         },
         {
+          inputs: [],
+          name: "ZeroRecipient",
+          type: "error",
+        },
+        {
           anonymous: false,
           inputs: [
             {
@@ -642,9 +1390,72 @@ const deployedContracts = {
           anonymous: false,
           inputs: [
             {
+              indexed: false,
+              internalType: "uint16",
+              name: "feeBps",
+              type: "uint16",
+            },
+          ],
+          name: "FeeUpdated",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "address",
+              name: "token",
+              type: "address",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "to",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "amount",
+              type: "uint256",
+            },
+          ],
+          name: "FeesWithdrawn",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "address",
+              name: "previousOwner",
+              type: "address",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "newOwner",
+              type: "address",
+            },
+          ],
+          name: "OwnershipTransferred",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
               indexed: true,
               internalType: "address",
               name: "user",
+              type: "address",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "recipient",
               type: "address",
             },
             {
@@ -654,7 +1465,7 @@ const deployedContracts = {
               type: "address",
             },
             {
-              indexed: true,
+              indexed: false,
               internalType: "address",
               name: "tokenOut",
               type: "address",
@@ -671,6 +1482,12 @@ const deployedContracts = {
               name: "amountOut",
               type: "uint256",
             },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "fee",
+              type: "uint256",
+            },
           ],
           name: "Swapped",
           type: "event",
@@ -683,6 +1500,19 @@ const deployedContracts = {
               internalType: "address",
               name: "",
               type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "MAX_FEE_BPS",
+          outputs: [
+            {
+              internalType: "uint16",
+              name: "",
+              type: "uint16",
             },
           ],
           stateMutability: "view",
@@ -727,6 +1557,39 @@ const deployedContracts = {
         },
         {
           inputs: [],
+          name: "feeBps",
+          outputs: [
+            {
+              internalType: "uint16",
+              name: "",
+              type: "uint16",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "owner",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "renounceOwnership",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [],
           name: "router",
           outputs: [
             {
@@ -741,9 +1604,27 @@ const deployedContracts = {
         {
           inputs: [
             {
+              internalType: "uint16",
+              name: "newFeeBps",
+              type: "uint16",
+            },
+          ],
+          name: "setFee",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
               internalType: "bytes",
               name: "path",
               type: "bytes",
+            },
+            {
+              internalType: "address",
+              name: "recipient",
+              type: "address",
             },
             {
               internalType: "uint256",
@@ -773,6 +1654,11 @@ const deployedContracts = {
               internalType: "bytes",
               name: "path",
               type: "bytes",
+            },
+            {
+              internalType: "address",
+              name: "recipient",
+              type: "address",
             },
             {
               internalType: "uint256",
@@ -809,6 +1695,11 @@ const deployedContracts = {
               type: "bytes",
             },
             {
+              internalType: "address",
+              name: "recipient",
+              type: "address",
+            },
+            {
               internalType: "uint256",
               name: "amountIn",
               type: "uint256",
@@ -836,6 +1727,19 @@ const deployedContracts = {
           type: "function",
         },
         {
+          inputs: [
+            {
+              internalType: "address",
+              name: "newOwner",
+              type: "address",
+            },
+          ],
+          name: "transferOwnership",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
           inputs: [],
           name: "whbar",
           outputs: [
@@ -849,12 +1753,57 @@ const deployedContracts = {
           type: "function",
         },
         {
+          inputs: [
+            {
+              internalType: "address",
+              name: "to",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "amount",
+              type: "uint256",
+            },
+          ],
+          name: "withdrawHbarFees",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "token",
+              type: "address",
+            },
+            {
+              internalType: "address",
+              name: "to",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "amount",
+              type: "uint256",
+            },
+          ],
+          name: "withdrawTokenFees",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
           stateMutability: "payable",
           type: "receive",
         },
       ],
-      inheritedFunctions: {},
-      deployedOnBlock: 41269746,
+      inheritedFunctions: {
+        owner: "@openzeppelin/contracts/access/Ownable.sol",
+        renounceOwnership: "@openzeppelin/contracts/access/Ownable.sol",
+        transferOwnership: "@openzeppelin/contracts/access/Ownable.sol",
+      },
+      deployedOnBlock: 41295589,
     },
   },
 } as const;
