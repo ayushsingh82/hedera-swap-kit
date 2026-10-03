@@ -22,7 +22,7 @@ const deployScheduledSwap: DeployFunction = async function (hre: HardhatRuntimeE
     args: [swapHelper.address, deployer, TICK_GAS, LAST_TICK_GAS, AUTOMATION_FEE_PER_RUN],
     log: true,
     autoMine: true,
-    gasLimit: "4000000",
+    gasLimit: "2000000",
     gasPrice: await getDeployGasPrice(hre),
   });
 };
