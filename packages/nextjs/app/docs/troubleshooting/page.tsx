@@ -29,6 +29,10 @@ const items: [string, React.ReactNode][] = [
     "Block Explorer says targetNetwork is not localhost",
     "That page only works against a local Hardhat node. On testnet or mainnet, use Hashscan.",
   ],
+  [
+    "An auto-buy run did not happen",
+    "The contract must hold the gas limit times the gas price when a run executes. If its balance is too low the network cannot run it. A plan whose next run could not be scheduled shows as paused: press Resume. A run that fails the minimum output is skipped and its HBAR stays in the plan.",
+  ],
   ["Wrong network", "The widget reads the wallet's chain. Switch to Hedera Testnet (296) or Mainnet (295)."],
 ];
 
