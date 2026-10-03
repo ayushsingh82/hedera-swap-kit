@@ -13,6 +13,60 @@ It is a swap toolkit, not a single demo page:
 | --- | --- |
 | ![Swap page on desktop](docs/images/swap-desktop.png) | <img src="docs/images/swap-mobile.png" alt="Swap page on mobile" width="260"> |
 
+## What you get
+
+### Swapping
+
+| Feature | Details |
+| --- | --- |
+| **Three swap types** | HBAR to token, token to token and token to HBAR, through SaucerSwap V2. |
+| **Live quotes** | QuoterV2 quotes refreshed every 15 seconds, with the minimum received after slippage. |
+| **Slippage and deadline** | Presets (0.1%, 0.5%, 1%), a custom value up to 50%, and a transaction deadline. |
+| **Price impact and route** | Shows the route (direct pool, or two hops through WHBAR) and warns when the impact is high. |
+| **One-click association** | Detects when your account (to receive) or `SwapHelper` (to pay) is not associated with a token, and associates in one click. |
+| **Transaction status** | Approving, swapping and confirming states, with a Hashscan link for every transaction. |
+| **Integrator fee** | Optional fee in the contract (0 by default, at most 1%) that accrues for the owner. |
+| **Swap for someone else** | Every swap takes a `recipient`, so an app can swap on behalf of a user. |
+
+### Data and pages
+
+| Feature | Details |
+| --- | --- |
+| **Token list** | Every SaucerSwap token with a V2 pool, with icon, price and your balance, searchable. |
+| **Pools browser** | V2 pools with fee tier, reserves and TVL, ordered by TVL. |
+| **Swap history** | Your swaps through `SwapHelper`, read from the mirror node. |
+| **Testnet and mainnet** | One config, chosen by the wallet's chain. |
+| **In-app docs** | A `/docs` section with a sidebar: quickstart, how swaps work, components, hooks, customize, architecture, troubleshooting. |
+
+### Routes and navbar
+
+A standard Scaffold-HBAR app has three navbar items: **Home**, **Debug Contracts** and **Block Explorer**. This template changes them:
+
+| Navbar item | Route | In plain Scaffold-HBAR | In this template |
+| --- | --- | --- | --- |
+| Swap | `/swap` | no | **New.** The swap widget. |
+| Pools | `/pools` | no | **New.** SaucerSwap V2 pools. |
+| History | `/history` | no | **New.** Your recent swaps. |
+| Docs | `/docs` | no | **New.** In-app documentation. |
+| Debug Contracts | `/debug` | yes | Kept. Calls `SwapHelper` (read `feeBps`, `owner`; as owner `setFee`, withdraw fees). Light-mode text colour fixed. |
+| Block Explorer | `/blockexplorer` | yes | Kept, but it only works against a local Hardhat node. On testnet it points to Hashscan. |
+| Home | `/` | yes | Now a landing page for the template. The logo and name link to it, so there is no separate "Home" item. |
+
+Also: `/api/health` returns `{"status":"ok"}`, and the navbar brand is `hedera-swap-kit` instead of "Scaffold-HBAR".
+
+### Deployed on Hedera testnet
+
+| What | Id | EVM address |
+| --- | --- | --- |
+| **SwapHelper** (this template, deployed) | [`0.0.10836039`](https://hashscan.io/testnet/contract/0.0.10836039) | `0x206bf34BA9c73dfC14c7847ad202a271c8105b30` |
+| SaucerSwap V2 SwapRouter | [`0.0.1414040`](https://hashscan.io/testnet/contract/0.0.1414040) | `0x0000000000000000000000000000000000159398` |
+| SaucerSwap QuoterV2 | [`0.0.1390002`](https://hashscan.io/testnet/contract/0.0.1390002) | `0x00000000000000000000000000000000001535b2` |
+| WHBAR token (end of every HBAR path) | [`0.0.15058`](https://hashscan.io/testnet/token/0.0.15058) | `0x0000000000000000000000000000000000003aD2` |
+| SAUCE token (used in the proof swap) | [`0.0.1183558`](https://hashscan.io/testnet/token/0.0.1183558) | `0x0000000000000000000000000000000000120f46` |
+| WHBAR/SAUCE pool, 0.30% fee | [`0.0.2661057`](https://hashscan.io/testnet/contract/0.0.2661057) | n/a |
+
+Mainnet ids are in `utils/saucerswap.ts` and `utils/swap/config.ts`: router `0.0.3949434`, quoter `0.0.3949424`, WHBAR token `0.0.1456986`. `SwapHelper` is not deployed on mainnet.
+
 ## Why
 
 Swapping on Hedera is not the same as swapping on Ethereum. A plain Uniswap-style integration fails in three places:

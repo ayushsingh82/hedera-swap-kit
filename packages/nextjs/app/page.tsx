@@ -8,6 +8,7 @@ import {
   LinkIcon,
   PuzzlePieceIcon,
 } from "@heroicons/react/24/outline";
+import { CodeBlock } from "~~/components/CodeBlock";
 
 const features = [
   {
@@ -79,9 +80,7 @@ const Home: NextPage = () => (
 
       <div className="mt-10">
         <h2 className="mb-2 text-xl font-bold">Use it in your app</h2>
-        <pre className="overflow-x-auto rounded-2xl bg-base-200 p-4 text-sm">
-          <code>{snippet}</code>
-        </pre>
+        <CodeBlock code={snippet} filename="app/page.tsx" />
       </div>
     </div>
   </div>
