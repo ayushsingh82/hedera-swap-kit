@@ -26,7 +26,22 @@ export default function Page() {
 }
 ```
 
-`SwapWidget` takes no props. It composes every part below, reads the wallet's network, quotes through QuoterV2, checks association, and swaps through the deployed `SwapHelper`. It needs a wallet provider (the scaffold's layout already has one) and `SwapHelper` deployed on the active network, otherwise it shows a notice.
+`SwapWidget` works with no props. It composes every part below, reads the wallet's network, quotes through QuoterV2, checks association, and swaps through the deployed `SwapHelper`. All props are optional:
+
+| Prop | Type | Notes |
+| --- | --- | --- |
+| `title` | `string` | Heading of the card. Default "Swap". |
+| `defaultTokenOut` | `string` | Token to receive when the list loads: a Hedera id (`0.0.1183558`) or a symbol. |
+| `lockTokenOut` | `boolean` | Hides the output picker, for a fixed target such as a checkout. |
+| `recipient` | `0x…` | Sends the output to this account instead of the wallet. The widget checks that the account is associated. |
+| `buttonLabel` | `string` | Label of the main button. Default "Swap". |
+
+```tsx
+// A checkout: the buyer pays in any token, the shop receives SAUCE.
+<SwapWidget title="Pay" defaultTokenOut="0.0.1183558" lockTokenOut recipient={shop} buttonLabel="Pay" />
+```
+
+It needs a wallet provider (the scaffold's layout already has one) and `SwapHelper` deployed on the active network, otherwise it shows a notice.
 
 To change its layout, copy `SwapWidget.tsx` into your app and rearrange the parts. It is about 200 lines.
 

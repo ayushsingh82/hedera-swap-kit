@@ -36,7 +36,22 @@ It is a swap toolkit, not a single demo page:
 | **Pools browser** | V2 pools with fee tier, reserves and TVL, ordered by TVL. |
 | **Swap history** | Your swaps through `SwapHelper`, read from the mirror node. |
 | **Testnet and mainnet** | One config, chosen by the wallet's chain. |
+| **Payment links** | Share a `/pay` link; the buyer pays in any token. |
 | **In-app docs** | A `/docs` section with a sidebar: quickstart, how swaps work, components, hooks, customize, architecture, troubleshooting. |
+
+### Use cases
+
+| Use case | Route | Status | How it works |
+| --- | --- | --- | --- |
+| **Swap** | `/swap` | Done | HBAR to token, token to token, token to HBAR. |
+| **Pay in any token** | `/pay` | Done | The buyer pays with any token and the receiver gets the token they chose. Build a link on `/pay`, share it, and the buyer lands on a checkout for it. The receiver address is passed as the swap `recipient`. |
+| **Buy a token** | `/buy` | Done | A swap widget with a fixed output token, for a project's own token page. `/buy?token=0.0.1183558` or set `NEXT_PUBLIC_BUY_TOKEN`. |
+| **Payouts** | `/payouts` | Planned | One funding token paid out to many recipients, each in their preferred token. |
+| **Auto-buy (DCA)** | `/dca` | Planned | A contract schedules its own next swap through the Hedera Schedule Service. No bot. |
+
+**Pay links.** `/pay?to=0x...&token=0.0.1183558&label=Cafe&order=1042` opens a checkout. `to` is the receiver, `token` is the token they receive (a Hedera id or `HBAR`), `label` and `order` are shown to the buyer. The receiver must be associated with the token, and the checkout tells the buyer if they are not. A swap sets the amount the buyer pays, not the amount the receiver gets, so for now the receiver gets the quoted amount at the time of payment.
+
+**Scheduled swaps (spike result).** The Hedera Schedule Service works from a contract on testnet: a contract scheduled a call to itself, the network ran it on time and paid for it, and the run scheduled the next one. Each scheduled run needs the contract to hold the gas limit times the gas price (about 1.7 HBAR for 2M gas) when it executes, and a run that reschedules uses about 1.4M gas. The spike is in `packages/hardhat/contracts/spike/`.
 
 ### Routes and navbar
 
@@ -44,7 +59,7 @@ A standard Scaffold-HBAR app has three navbar items: **Home**, **Debug Contracts
 
 | Navbar item | Route | In plain Scaffold-HBAR | In this template |
 | --- | --- | --- | --- |
-| Swap | `/swap` | no | **New.** The swap widget. |
+| Use cases (dropdown) | `/swap`, `/pay`, `/buy` | no | **New.** Swap, Pay in any token, Buy a token. Grouped so the navbar stays short. |
 | Pools | `/pools` | no | **New.** SaucerSwap V2 pools. |
 | History | `/history` | no | **New.** Your recent swaps. |
 | Docs | `/docs` | no | **New.** In-app documentation. |

@@ -3,7 +3,10 @@ import { CodeBlock } from "~~/components/CodeBlock";
 import { DocHeader, DocSection, DocTable, Inline, Row } from "~~/components/docs/DocsParts";
 
 const components: Row[] = [
-  ["SwapWidget", "The drop-in widget. No props. Composes everything below and swaps through SwapHelper."],
+  [
+    "SwapWidget",
+    "The drop-in widget. Composes everything below and swaps through SwapHelper. Optional props: title, defaultTokenOut, lockTokenOut, recipient, buttonLabel.",
+  ],
   [
     "TokenSelect",
     "Searchable token picker with icon, symbol and balance. Props: tokens, value, onChange, balanceOf?, disabledToken?",

@@ -5,7 +5,7 @@ import { AmountInput } from "./AmountInput";
 import { AssociateButton } from "./AssociateButton";
 import { QuoteDetails } from "./QuoteDetails";
 import { DEFAULT_SETTINGS, SlippageSettings, SwapSettings } from "./SlippageSettings";
-import { TokenSelect } from "./TokenSelect";
+import { TokenIcon, TokenSelect } from "./TokenSelect";
 import { TxStatus } from "./TxStatus";
 import { useAccount } from "wagmi";
 import { ArrowsUpDownIcon } from "@heroicons/react/24/outline";
@@ -27,11 +27,28 @@ import { HBAR, SwapToken } from "~~/utils/swap/tokens";
 const GAS_RESERVE = 100_000_000n;
 const HIGH_IMPACT_PERCENT = 5;
 
+export type SwapWidgetProps = {
+  title?: string;
+  /** Token to receive when the list loads: a Hedera id such as "0.0.1183558", or a symbol such as "SAUCE". */
+  defaultTokenOut?: string;
+  /** Hides the output token picker, for a fixed target such as a checkout or a token page. */
+  lockTokenOut?: boolean;
+  /** Sends the output to this account instead of the connected wallet, for example a merchant. */
+  recipient?: `0x${string}`;
+  buttonLabel?: string;
+};
+
 /**
  * The drop-in swap widget. It composes the token pickers, amount fields, quote, association checks and
  * transaction status, and talks to the deployed SwapHelper. Use it as is, or copy it and rearrange the parts.
  */
-export const SwapWidget = () => {
+export const SwapWidget = ({
+  title = "Swap",
+  defaultTokenOut,
+  lockTokenOut = false,
+  recipient,
+  buttonLabel = "Swap",
+}: SwapWidgetProps) => {
   const network = useSwapNetwork();
   const { address: account } = useAccount();
   const { tokens } = useTokenList();
@@ -48,14 +65,20 @@ export const SwapWidget = () => {
   useEffect(() => {
     if (!tokens.length) return;
     setTokenIn(current => tokens.find(t => t.id === current.id) ?? current);
-    setTokenOut(current => current ?? tokens.find(t => t.symbol === "SAUCE") ?? tokens[1]);
-  }, [tokens]);
+    setTokenOut(
+      current =>
+        current ??
+        tokens.find(t => t.id === defaultTokenOut || t.symbol === defaultTokenOut) ??
+        tokens.find(t => t.symbol === "SAUCE") ??
+        tokens[1],
+    );
+  }, [tokens, defaultTokenOut]);
 
   const amountIn = parseAmount(amount, tokenIn.decimals);
   const { route, isLoading: routeLoading } = useRoute(tokenIn, tokenOut);
   const { data: quote, isFetching: quoting, error: quoteError } = useQuote(route, amountIn);
 
-  const wallet = useAssociation(tokenOut, "wallet");
+  const wallet = useAssociation(tokenOut, "wallet", recipient);
   const helper = useAssociation(tokenIn, "helper");
 
   const routeSymbols = useMemo(() => {
@@ -93,6 +116,7 @@ export const SwapWidget = () => {
       amountIn,
       amountOutMinimum: applySlippage(quote.amountOut, settings.slippageBps),
       deadlineSeconds: BigInt(settings.deadlineMinutes * 60),
+      recipient,
     });
     if (hashOrUndefined) {
       setAmount("");
@@ -110,7 +134,10 @@ export const SwapWidget = () => {
     if (!route) return "No route with liquidity";
     if (quoteError) return "Could not get a quote";
     if (!quote) return "Getting a quote…";
-    if (wallet.isAssociated === false) return `Associate ${tokenOut.symbol} first`;
+    if (wallet.isAssociated === false)
+      return recipient
+        ? `The receiver is not associated with ${tokenOut.symbol}`
+        : `Associate ${tokenOut.symbol} first`;
     if (helper.isAssociated === false) return `Associate ${tokenIn.symbol} with the swap contract first`;
     return undefined;
   })();
@@ -118,7 +145,7 @@ export const SwapWidget = () => {
   return (
     <div className="relative w-full max-w-md rounded-3xl border border-base-300 bg-base-100 p-4 shadow-xl">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-lg font-bold">Swap</h2>
+        <h2 className="text-lg font-bold">{title}</h2>
         <SlippageSettings value={settings} onChange={setSettings} />
       </div>
 
@@ -164,13 +191,22 @@ export const SwapWidget = () => {
         readOnly
         loading={quoting}
         tokenSelect={
-          <TokenSelect
-            tokens={tokens}
-            value={tokenOut}
-            onChange={setTokenOut}
-            balanceOf={balanceOf}
-            disabledToken={tokenIn}
-          />
+          lockTokenOut ? (
+            tokenOut && (
+              <span className="flex shrink-0 items-center gap-2 rounded-full bg-base-100 px-3 py-1 text-sm font-semibold">
+                <TokenIcon token={tokenOut} size={20} />
+                {tokenOut.symbol}
+              </span>
+            )
+          ) : (
+            <TokenSelect
+              tokens={tokens}
+              value={tokenOut}
+              onChange={setTokenOut}
+              balanceOf={balanceOf}
+              disabledToken={tokenIn}
+            />
+          )
         }
       />
 
@@ -193,7 +229,7 @@ export const SwapWidget = () => {
           </p>
         )}
 
-        <AssociateButton token={tokenOut} subject="wallet" />
+        {!recipient && <AssociateButton token={tokenOut} subject="wallet" />}
         <AssociateButton token={tokenIn} subject="helper" />
         <TxStatus status={status} hash={hash} error={error} />
 
@@ -205,7 +241,7 @@ export const SwapWidget = () => {
             onClick={onSwap}
           >
             {isBusy && <span className="loading loading-spinner loading-sm" />}
-            {blocker ?? (highImpact ? "Swap anyway" : "Swap")}
+            {blocker ?? (highImpact ? `${buttonLabel} anyway` : buttonLabel)}
           </button>
         ) : (
           <div className="flex justify-center">

@@ -17,7 +17,7 @@ const ASSOCIATE_GAS = 1_000_000n;
  * `subject` "wallet" is the connected account (needed for any token you swap *to*). "helper" is the SwapHelper
  * contract (needed for any token you swap *from*, because it pulls the token before swapping).
  */
-export function useAssociation(token: SwapToken | undefined, subject: "wallet" | "helper") {
+export function useAssociation(token: SwapToken | undefined, subject: "wallet" | "helper", accountOverride?: string) {
   const network = useSwapNetwork();
   const { address: wallet } = useAccount();
   const { address: helper } = useSwapHelper();
@@ -27,7 +27,8 @@ export function useAssociation(token: SwapToken | undefined, subject: "wallet" |
   const [isAssociating, setIsAssociating] = useState(false);
   const [error, setError] = useState<string>();
 
-  const account = subject === "wallet" ? wallet : helper;
+  // With accountOverride the hook only checks that account. Associating needs that account's own signature.
+  const account = accountOverride ?? (subject === "wallet" ? wallet : helper);
   const needsCheck = !!token && !token.isNative && !!account;
   const queryKey = ["swap", "association", network.chainId, subject, account, token?.id];
 
@@ -44,7 +45,7 @@ export function useAssociation(token: SwapToken | undefined, subject: "wallet" |
   });
 
   const associate = async () => {
-    if (!token || !account || !publicClient) return;
+    if (!token || !account || !publicClient || accountOverride) return;
     setIsAssociating(true);
     setError(undefined);
     try {
