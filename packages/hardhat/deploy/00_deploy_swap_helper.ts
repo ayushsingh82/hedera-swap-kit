@@ -11,7 +11,7 @@ const deploySwapHelper: DeployFunction = async function (hre: HardhatRuntimeEnvi
 
   await deploy("SwapHelper", {
     from: deployer,
-    args: [swapRouter, whbarToken],
+    args: [swapRouter, whbarToken, deployer],
     log: true,
     autoMine: true,
     gasLimit: "3000000",
