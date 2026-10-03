@@ -8,6 +8,8 @@ Common changes, with the files to touch.
 - [Swap the DEX out](#swap-the-dex-out)
 - [Go to mainnet](#go-to-mainnet)
 - [Swap on behalf of a user](#swap-on-behalf-of-a-user)
+- [Tune the auto-buy](#tune-the-auto-buy)
+- [Change what the payouts page accepts](#change-what-the-payouts-page-accepts)
 
 ## Change the fee
 
@@ -96,3 +98,19 @@ Every swap function takes a `recipient`. A backend or app can swap with a user's
 ```ts
 await swap({ tokenIn, tokenOut, route, amountIn, amountOutMinimum, recipient: "0xUser…" });
 ```
+
+## Tune the auto-buy
+
+`ScheduledSwap` has three settings, changed by the owner with `setSettings(tickGas, lastTickGas, automationFeePerRun)`:
+
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `tickGas` | 2,000,000 | Gas limit of a run that reschedules the next one. Rescheduling alone used about 1.4M on testnet. |
+| `lastTickGas` | 800,000 | Gas limit of the final run, which only swaps. |
+| `automationFeePerRun` | 130,000,000 tinybar (1.3 HBAR) | Charged per run, up front. It must cover the gas the network bills the contract for each run. |
+
+The contract must hold `gas limit x gas price` when a run executes, so lower the fee only after checking the gas price on your network. Withdraw fees the owner has earned with `withdrawSurplus`; escrowed budget can never be withdrawn.
+
+## Change what the payouts page accepts
+
+The CSV rules live in `utils/swap/payouts.ts` (`parsePayoutCsv`, `MAX_PAYOUTS`, `payoutGas`) and are covered by tests in `utils/swap/swap.test.ts`. The on-chain limit is `BatchPayout.MAX_PAYMENTS` (50). To pay from a token instead of HBAR you would add a path through `swapExactTokensForTokens` to the contract; the page and `usePayoutChecks` would then also check the sender's allowance.

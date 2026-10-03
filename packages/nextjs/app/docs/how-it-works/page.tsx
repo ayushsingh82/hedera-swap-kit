@@ -26,7 +26,12 @@ const HowItWorksPage: NextPage = () => (
     </DocSection>
 
     <DocSection title="Association">
-      <p>An account must be associated with an HTS token before it can receive or hold it.</p>
+      <p>
+        An account must be associated with an HTS token before it can hold it. Accounts created recently allow{" "}
+        <b>automatic associations</b> (<Inline>max_automatic_token_associations</Inline> of -1 means unlimited), so the
+        token is associated when it first arrives and no step is needed. Older accounts, or accounts that turned it off,
+        must associate first. The kit reads this from the mirror node and only asks when it is needed.
+      </p>
       <DocTable
         head={["When you are", "Who must be associated"]}
         rows={[

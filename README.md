@@ -47,8 +47,8 @@ It is a swap toolkit, not a single demo page:
 | **Swap** | `/swap` | Done | HBAR to token, token to token, token to HBAR. |
 | **Pay in any token** | `/pay` | Done | The buyer pays with any token and the receiver gets the token they chose. Build a link on `/pay`, share it, and the buyer lands on a checkout for it. The receiver address is passed as the swap `recipient`. |
 | **Buy a token** | `/buy` | Done | A swap widget with a fixed output token, for a project's own token page. `/buy?token=0.0.1183558` or set `NEXT_PUBLIC_BUY_TOKEN`. |
-| **Payouts** | `/payouts` | Planned | One funding token paid out to many recipients, each in their preferred token. |
-| **Auto-buy (DCA)** | `/dca` | Built, live testnet proof pending | Buy a token on a schedule. `ScheduledSwap` schedules each run through the Hedera Schedule Service, and each run schedules the next. No bot. |
+| **Payouts** | `/payouts` | Done | Paste a list, see what each recipient gets, and pay everyone in one transaction through `BatchPayout`. A payment that fails is refunded, not fatal. |
+| **Auto-buy (DCA)** | `/dca` | Done | Buy a token on a schedule. `ScheduledSwap` schedules each run through the Hedera Schedule Service, and each run schedules the next. No bot. |
 
 **Pay links.** `/pay?to=0x...&token=0.0.1183558&label=Cafe&order=1042` opens a checkout. `to` is the receiver, `token` is the token they receive (a Hedera id or `HBAR`), `label` and `order` are shown to the buyer. The receiver must be associated with the token, and the checkout tells the buyer if they are not. A swap sets the amount the buyer pays, not the amount the receiver gets, so for now the receiver gets the quoted amount at the time of payment.
 
@@ -85,12 +85,12 @@ A standard Scaffold-HBAR app has three navbar items: **Home**, **Debug Contracts
 
 | Navbar item | Route | In plain Scaffold-HBAR | In this template |
 | --- | --- | --- | --- |
-| Use cases (dropdown) | `/swap`, `/pay`, `/dca`, `/buy` | no | **New.** Swap, Pay in any token, Auto-buy, Buy a token. Grouped so the navbar stays short. |
+| Use cases (dropdown) | `/swap`, `/pay`, `/payouts`, `/dca`, `/buy` | no | **New.** Swap, Pay in any token, Payouts, Auto-buy, Buy a token. Grouped so the navbar stays short. |
 | Pools | `/pools` | no | **New.** SaucerSwap V2 pools. |
 | History | `/history` | no | **New.** Your recent swaps. |
 | Docs | `/docs` | no | **New.** In-app documentation. |
 | Debug Contracts | `/debug` | yes | Kept. Calls `SwapHelper` (read `feeBps`, `owner`; as owner `setFee`, withdraw fees). Light-mode text colour fixed. |
-| Block Explorer | `/blockexplorer` | yes | Kept, but it only works against a local Hardhat node. On testnet it points to Hashscan. |
+| Block Explorer | `/blockexplorer` | yes | Kept, but shown in the navbar only on the local network, where it works. On testnet use Hashscan. |
 | Home | `/` | yes | Now a landing page for the template. The logo and name link to it, so there is no separate "Home" item. |
 
 Also: `/api/health` returns `{"status":"ok"}`, and the navbar brand is `hedera-swap-kit` instead of "Scaffold-HBAR".
@@ -99,7 +99,9 @@ Also: `/api/health` returns `{"status":"ok"}`, and the navbar brand is `hedera-s
 
 | What | Id | EVM address |
 | --- | --- | --- |
-| **SwapHelper** (this template, deployed) | [`0.0.10836039`](https://hashscan.io/testnet/contract/0.0.10836039) | `0x206bf34BA9c73dfC14c7847ad202a271c8105b30` |
+| **SwapHelper** (swap, pay, buy) | [`0.0.10836039`](https://hashscan.io/testnet/contract/0.0.10836039) | `0x206bf34BA9c73dfC14c7847ad202a271c8105b30` |
+| **ScheduledSwap** (auto-buy) | [`0.0.10838897`](https://hashscan.io/testnet/contract/0.0.10838897) | `0x7FC7A91a7E8d1183db212d1452D7F46639519cA8` |
+| **BatchPayout** (payouts) | [`0.0.10838907`](https://hashscan.io/testnet/contract/0.0.10838907) | `0xDeb518Dd98706ed52c5c972dF3DE8D0ad55b47c1` |
 | SaucerSwap V2 SwapRouter | [`0.0.1414040`](https://hashscan.io/testnet/contract/0.0.1414040) | `0x0000000000000000000000000000000000159398` |
 | SaucerSwap QuoterV2 | [`0.0.1390002`](https://hashscan.io/testnet/contract/0.0.1390002) | `0x00000000000000000000000000000000001535b2` |
 | WHBAR token (end of every HBAR path) | [`0.0.15058`](https://hashscan.io/testnet/token/0.0.15058) | `0x0000000000000000000000000000000000003aD2` |
@@ -144,33 +146,41 @@ Or clone this repository and run `npm install --legacy-peer-deps`.
 ```bash
 npm install --legacy-peer-deps
 
-# 1. Set up a deployer account (encrypted key, stored in packages/hardhat/.env)
-npm run hardhat:account:generate      # or hardhat:account:import
-# Fund the printed address from https://portal.hedera.com/faucet
+npm run init             # creates a deployer wallet, saves its key to packages/hardhat/.env, prints the address
+# Fund that address with testnet HBAR: https://portal.hedera.com/faucet (about 20 HBAR is plenty)
 
-# 2. Deploy SwapHelper to Hedera testnet
-npm run hardhat:deploy -- --network hederaTestnet
-
-# 3. Start the app
-npm run next:dev                      # http://localhost:3000
+npm run doctor           # checks Node, the key, the balance, the mirror node, SaucerSwap and your deployments
+npm run deploy:testnet   # deploys SwapHelper, ScheduledSwap and BatchPayout
+npm run next:dev         # http://localhost:3000
 ```
+
+`npm run init` is safe to run again: it never replaces an existing key. `npm run doctor` tells you what is missing and how to fix it.
 
 Open `/swap`, connect a wallet on Hedera Testnet, pick a token, and swap. If a token needs association, the widget shows a one-click **Associate** button first.
 
-### Run a swap from the command line
+Prefer an encrypted key? `npm run hardhat:account:generate` and `npm run hardhat:deploy -- --network hederaTestnet` still work and ask for a password.
 
-```bash
-npm run hardhat:swap-testnet
-```
+### Run each use case from the command line
 
-It swaps 1 HBAR for SAUCE through the deployed `SwapHelper` and prints a Hashscan link. It needs `__RUNTIME_DEPLOYER_PRIVATE_KEY` in `packages/hardhat/.env`.
+Every use case has a demo that sends one real testnet transaction and prints its Hashscan link. They use the funded account in `packages/hardhat/.env`.
 
-### Proof of a real testnet swap
+| Command | What it does | Rough cost (estimate) |
+| --- | --- | --- |
+| `npm run demo:swap` | Swaps 1 HBAR for SAUCE | about 1.2 HBAR with fees |
+| `npm run demo:pay` | Pays 0.5 HBAR as SAUCE to a receiver (`DEMO_RECEIVER=0x...`, default yourself) | about 0.7 HBAR |
+| `npm run demo:payout` | Pays two recipients in one batch | about 1.1 HBAR |
+| `npm run demo:dca` | Creates a 2-run auto-buy and watches the network run it | about 6 HBAR |
 
-A real swap of 1 HBAR for SAUCE through the deployed `SwapHelper` on Hedera testnet:
+### Proof on Hedera testnet
 
-- Transaction: [`0x1bd1c348…b4f2`](https://hashscan.io/testnet/transaction/0x1bd1c3480d29849e60e9f8abc79733b5fc713d1649a9edb118752ba08fd7b4f2)
-- `SwapHelper`: `0x206bf34BA9c73dfC14c7847ad202a271c8105b30`
+| Use case | Transaction |
+| --- | --- |
+| Swap, 1 HBAR to SAUCE | [`0x1bd1c348…b4f2`](https://hashscan.io/testnet/transaction/0x1bd1c3480d29849e60e9f8abc79733b5fc713d1649a9edb118752ba08fd7b4f2) |
+| Payout, two payments in one batch | [`0x6b8e5a07…ff5c`](https://hashscan.io/testnet/transaction/0x6b8e5a07fd5fe34705a76ad9cb086c8e4c331c503f921595d3d2c87dc502ff5c) |
+| Pay in any token | uses the swap path with a `recipient`; run `npm run demo:pay` |
+| Auto-buy | `ScheduledSwap` is deployed on testnet (`0.0.10838897`). Run `npm run demo:dca` to create a plan and watch the network run it (needs about 6 HBAR) |
+
+The deployed contracts are in the table above.
 
 ## Environment variables
 
@@ -202,13 +212,15 @@ The WHBAR address used in paths is the **token** (`0.0.15058` on testnet), not t
 
 ### Association
 
-On Hedera an account must be associated with an HTS token before it can receive or hold it.
+On Hedera an account must be associated with an HTS token before it can hold it. Accounts created recently allow **automatic associations** (`max_automatic_token_associations` of -1 means unlimited), so the token is associated when it first arrives and no step is needed. This holds for contracts and EVM-created accounts too: in the payout above, a contract that had never held SAUCE received it and was associated automatically. Older accounts, or accounts that turned it off, must associate first.
 
 | You are… | Who must be associated | How |
 | --- | --- | --- |
-| Swapping **to** a token | The **recipient** (usually the connected wallet) | `associate()` on the token (HRC-719). The widget's **Associate** button does it. |
+| Swapping **to** a token | The **recipient**, unless it allows automatic associations | `associate()` on the token (HRC-719). The widget's **Associate** button does it, and only appears when needed. |
 | Swapping **from** a token | **`SwapHelper`**, because it pulls the token before swapping | `SwapHelper.associate(token)`. Anyone can call it once per token. |
 | Using native HBAR | Nobody | Not needed. |
+
+Every recipient also needs a Hedera **account**. Paying an address that has none aborts the whole transaction (`INVALID_ALIAS_KEY`). The payouts page checks this for you.
 
 ### Tinybar vs weibar
 
@@ -240,7 +252,7 @@ packages/
     test/ScheduledSwap.test.ts     auto-buy tests (mock Schedule Service)
     utils/saucerswap.ts            router, quoter and WHBAR addresses per network
   nextjs/
-    app/                           pages: /, /swap, /pay, /buy, /dca, /pools, /history, /docs, /api/health
+    app/                           pages: /, /swap, /pay, /payouts, /buy, /dca, /pools, /history, /docs, /api/health
     components/swap/               the component kit
     components/use-cases/          payment link builder, auto-buy form and plans
     hooks/swap/                    the hooks
@@ -252,19 +264,20 @@ docs/                              components, customize, architecture
 
 | Command | What it does |
 | --- | --- |
-| `npm run hardhat:compile` | Compile contracts |
-| `npm run hardhat:test` | Contract tests |
-| `npm run hardhat:deploy -- --network hederaTestnet` | Deploy `SwapHelper` |
-| `npm run hardhat:swap-testnet` | Run one real swap |
+| `npm run init` | Create a deployer wallet and save its key to `.env` |
+| `npm run doctor` | Check the setup and say how to fix anything missing |
+| `npm run deploy:testnet` | Deploy every contract to testnet |
+| `npm run demo:swap`, `demo:pay`, `demo:payout`, `demo:dca` | Run one real testnet transaction per use case |
 | `npm run next:dev` | Start the app |
-| `npm run next:test` | Unit tests for the swap logic |
+| `npm run hardhat:compile`, `npm run hardhat:test` | Compile and test the contracts |
+| `npm run next:test` | Unit tests for the swap, payout and auto-buy logic |
 | `LIVE=1 npm run next:test` | Adds a live testnet quote test |
-| `npm run next:build` | Production build |
-| `npm run next:check-types` | Type check |
+| `npm run next:build`, `npm run next:check-types` | Production build, type check |
 | `npm run hardhat:lint`, `npm run next:lint` | Lint |
 
 ## Docs
 
+- [Use cases](docs/use-cases.md): swap, pay, payouts, auto-buy and buy, with costs and limits
 - [Components and hooks](docs/components.md): props, examples, usage
 - [Customize](docs/customize.md): swap the DEX, add a token, change the fee, mainnet
 - [Architecture](docs/architecture.md): contract and frontend flows
@@ -274,7 +287,7 @@ docs/                              components, customize, architecture
 
 **"SwapHelper is not deployed on Hedera Testnet."** Run `npm run hardhat:deploy -- --network hederaTestnet`. The deploy writes the address to `packages/nextjs/contracts/deployedContracts.ts`.
 
-**The swap reverts with no reason.** Check, in order: the recipient is associated with the output token; for token inputs, `SwapHelper` is associated with the input token and you approved it; the deadline has not passed; slippage is not too tight for a thin pool.
+**The swap reverts with no reason.** Check, in order: the recipient has an account and can receive the output token (see Association); for token inputs, `SwapHelper` is associated with the input token and you approved it; the deadline has not passed; slippage is not too tight for a thin pool.
 
 **"No route".** No pool with liquidity connects the pair. Testnet liquidity is thin: try HBAR/SAUCE, or see [docs/customize.md](docs/customize.md#add-a-pool).
 
@@ -282,13 +295,19 @@ docs/                              components, customize, architecture
 
 **Token to HBAR costs more.** HTS transfers are gas heavy: on testnet a token to HBAR swap used about 1.7M gas (about 1.4 HBAR at 84 tinybar per gas), against about 0.2M for HBAR to token. Hedera bills the gas used, not the limit.
 
+**A payout batch reverts with `INVALID_ALIAS_KEY`.** One recipient has no Hedera account yet. Send it some HBAR first. The payouts page marks these rows "No account" and leaves them out.
+
+**"Insufficient funds for transfer" from a script.** The account must hold the gas limit times the max fee up front, and ethers defaults the max fee to twice the gas price. Pass `maxFeePerGas` equal to the gas price (the demo scripts do) and keep a little HBAR spare. Wallets such as MetaMask choose their own fee.
+
+**An auto-buy run did not happen.** The contract must hold the gas limit times the gas price when a run executes. A plan whose next run could not be scheduled shows as paused: press Resume.
+
 **`INSUFFICIENT_PAYER_BALANCE` or out of gas.** The account needs HBAR for fees. When you swap your whole balance the widget keeps 1 HBAR back for this.
 
 **Wrong network.** The widget reads the wallet's chain. Switch to Hedera Testnet (296) or Mainnet (295).
 
 ## Status
 
-Tested: contract unit tests, swap-logic unit tests, type check and production build. Not yet exercised by the maintainers: the full wallet-driven flow on testnet and a mainnet deploy. See [PLAN.md](PLAN.md).
+Tested: 52 contract tests (`SwapHelper` 26, `ScheduledSwap` 17, `BatchPayout` 9), 32 unit tests, type check, lint and production build. Run on testnet: deploys of all three contracts, a swap, and a batch payout. A full multi-run auto-buy has no recorded Hashscan link yet (run `npm run demo:dca` to make one), and the wallet-driven UI and mainnet have not been exercised. See [PLAN.md](PLAN.md).
 
 ## Links
 
