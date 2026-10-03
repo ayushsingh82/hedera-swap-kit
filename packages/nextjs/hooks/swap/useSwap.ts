@@ -9,8 +9,10 @@ import { WEIBAR_PER_TINYBAR } from "~~/utils/swap/math";
 import { SwapRoute, encodePath } from "~~/utils/swap/route";
 import { SwapToken } from "~~/utils/swap/tokens";
 
-const SWAP_GAS = 1_500_000n;
-const APPROVE_GAS = 800_000n;
+// Measured on testnet: HBAR in uses ~0.2M gas, token to HBAR ~1.7M (HTS transfers are costly). Hedera bills gas
+// consumed, not the limit, so a roomy limit only guards against out-of-gas reverts.
+const SWAP_GAS = 2_500_000n;
+const APPROVE_GAS = 1_000_000n;
 const DEADLINE_SECONDS = 600n;
 
 export type SwapParams = {

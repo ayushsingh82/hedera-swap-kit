@@ -9,7 +9,9 @@ It is a swap toolkit, not a single demo page:
 - **A demo app** built from those parts: `/swap`, `/pools`, `/history`.
 - An optional **integrator fee** in the contract, so you can monetize an app built on it.
 
-> Screenshot: _TODO, add `docs/images/swap.png` after the first wallet run on testnet._
+| Desktop | Mobile |
+| --- | --- |
+| ![Swap page on desktop](docs/images/swap-desktop.png) | <img src="docs/images/swap-mobile.png" alt="Swap page on mobile" width="260"> |
 
 ## Why
 
@@ -70,7 +72,10 @@ It swaps 1 HBAR for SAUCE through the deployed `SwapHelper` and prints a Hashsca
 
 ### Proof of a real testnet swap
 
-> Hashscan link: _TODO, paste the link printed by `npm run hardhat:swap-testnet` once it has run._
+A real swap of 1 HBAR for SAUCE through the deployed `SwapHelper` on Hedera testnet:
+
+- Transaction: [`0x1bd1c348…b4f2`](https://hashscan.io/testnet/transaction/0x1bd1c3480d29849e60e9f8abc79733b5fc713d1649a9edb118752ba08fd7b4f2)
+- `SwapHelper`: `0x206bf34BA9c73dfC14c7847ad202a271c8105b30`
 
 ## Environment variables
 
@@ -174,6 +179,8 @@ docs/                              components, customize, architecture
 **"No route".** No pool with liquidity connects the pair. Testnet liquidity is thin: try HBAR/SAUCE, or see [docs/customize.md](docs/customize.md#add-a-pool).
 
 **Build fails resolving `@x402/*`.** Already handled in `next.config.ts`. If you upgrade RainbowKit and it returns, keep that webpack alias.
+
+**Token to HBAR costs more.** HTS transfers are gas heavy: on testnet a token to HBAR swap used about 1.7M gas (about 1.4 HBAR at 84 tinybar per gas), against about 0.2M for HBAR to token. Hedera bills the gas used, not the limit.
 
 **`INSUFFICIENT_PAYER_BALANCE` or out of gas.** The account needs HBAR for fees. When you swap your whole balance the widget keeps 1 HBAR back for this.
 

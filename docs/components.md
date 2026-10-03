@@ -9,7 +9,11 @@ import { useQuote, useSwap } from "~~/hooks/swap";
 
 Amounts are always `bigint` in a token's smallest unit. For HBAR that is **tinybar** (8 decimals). Use `parseAmount` and `formatAmount` from `~~/utils/swap/math` to convert to and from user text.
 
-> Screenshots: _TODO, add them under `docs/images/` after the first wallet run on testnet._
+![SwapWidget on desktop](images/swap-desktop.png)
+
+<img src="images/swap-mobile.png" alt="SwapWidget on mobile" width="260">
+
+More screenshots are in `docs/images/` (`pools-mobile.png`, `docs-mobile.png`, `home-mobile.png`).
 
 ## The quick way: `SwapWidget`
 
