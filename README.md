@@ -1,17 +1,68 @@
 # hedera-swap-kit
 
-A [Scaffold-HBAR](https://docs.hedera.com/solutions/tools/scaffold-hbar/index) template for apps that need **token swaps on Hedera**: wallets, payment apps, game stores and DeFi front ends.
+A [Scaffold-HBAR](https://docs.hedera.com/solutions/tools/scaffold-hbar/index) template to **swap, pay, pay out and schedule on Hedera**: wallets, payment apps, game stores, payroll tools and DeFi front ends.
 
-It is a swap toolkit, not a single demo page:
+[Documentation](docs/use-cases.md) · [GitHub](https://github.com/ayushsingh82/hedera-swap-kit) · Built by [ayushsingh82](https://github.com/ayushsingh82)
 
-- **`SwapHelper.sol`** wraps the [SaucerSwap V2](https://docs.saucerswap.finance) router and handles the Hedera-specific problems EVM developers hit: HTS token association, native HBAR vs WHBAR, and tinybar vs weibar.
-- **A React component kit and hooks** (`SwapWidget`, `TokenSelect`, `useQuote`, `useSwap` and more) you can drop into your own app.
-- **A demo app** built from those parts: `/swap`, `/pools`, `/history`.
-- An optional **integrator fee** in the contract, so you can monetize an app built on it.
+It is a kit of contracts, React components and ready-made flows, not a single demo page:
+
+- **`SwapHelper`** wraps the [SaucerSwap V2](https://docs.saucerswap.finance) router and handles the Hedera-specific problems EVM developers hit: HTS token association, native HBAR vs WHBAR, and tinybar vs weibar.
+- **`BatchPayout`** pays up to 50 recipients in one transaction, each in the token they want.
+- **`ScheduledSwap`** runs recurring purchases with the Hedera Schedule Service, so there is no bot to host.
+- **A React component kit and hooks** (`SwapWidget`, `PayoutsForm`, `DcaForm`, `useQuote`, `useSwap` and more) you can drop into your own app.
+- **A demo app** with a page for every use case, in-app docs, and an optional **integrator fee** so an app built on it can earn from swaps.
+- **A command line** for setup, health checks, deploys and one real transaction per use case.
 
 | Desktop | Mobile |
 | --- | --- |
 | ![Swap page on desktop](docs/images/swap-desktop.png) | <img src="docs/images/swap-mobile.png" alt="Swap page on mobile" width="260"> |
+
+## Quick check
+
+### 1. Scaffold it
+
+```bash
+npm create scaffold-hbar@latest my-app -- --template ayushsingh82/hedera-swap-kit
+```
+
+Without prompts (CI, scripts):
+
+```bash
+npm create scaffold-hbar@latest my-app -- --template ayushsingh82/hedera-swap-kit \
+  --frontend nextjs-app --solidity-framework hardhat --network testnet --package-manager npm --ci
+```
+
+### 2. Run it end to end
+
+From a fresh folder to a working app on Hedera testnet (about 10 minutes, most of it the install):
+
+| Step | Command | You should see |
+| --- | --- | --- |
+| Install | `cd my-app && npm install --legacy-peer-deps` | Dependencies installed |
+| Create a wallet | `npm run init` | An account address, and a note that its key is saved to `packages/hardhat/.env` |
+| Fund it | [portal.hedera.com/faucet](https://portal.hedera.com/faucet) | About 20 testnet HBAR on that address |
+| Check the setup | `npm run doctor` | A tick for Node, the account, the balance, the mirror node and SaucerSwap |
+| Deploy | `npm run deploy:testnet` | `SwapHelper`, `ScheduledSwap` and `BatchPayout` deployed, with addresses |
+| Run the app | `npm run next:dev` | The landing page at http://localhost:3000 |
+| Try a use case | `npm run demo:payout` | A confirmed batch and a Hashscan link |
+
+`npm run doctor` can be run at any point and says how to fix whatever is missing. The details are in [Quickstart](#quickstart) and the [use-case guides](docs/use-cases.md).
+
+### 3. Testnet transactions
+
+Every link opens on Hashscan, Hedera testnet.
+
+| What | Transaction or ID |
+| --- | --- |
+| Swap, 1 HBAR to SAUCE through `SwapHelper` | [`0x1bd1c348…b4f2`](https://hashscan.io/testnet/transaction/0x1bd1c3480d29849e60e9f8abc79733b5fc713d1649a9edb118752ba08fd7b4f2) |
+| Batch payout, two payments in one transaction | [`0x6b8e5a07…ff5c`](https://hashscan.io/testnet/transaction/0x6b8e5a07fd5fe34705a76ad9cb086c8e4c331c503f921595d3d2c87dc502ff5c) |
+| Deploy `SwapHelper` | [`0x715b5bd9…2fb8`](https://hashscan.io/testnet/transaction/0x715b5bd9488c64030a785610a78815f3a3b57b62c354cae53a41da6200aa2fb8) |
+| Deploy `ScheduledSwap` | [`0x0e150711…d26b`](https://hashscan.io/testnet/transaction/0x0e1507116144bd0686575a7f73bb9d1e83f02187776ed7c53959435a5f83d26b) |
+| Deploy `BatchPayout` | [`0xa7502659…449fd4`](https://hashscan.io/testnet/transaction/0xa7502659dbe2132ed63e44d20176239d0f9a7a5fc0552e3e3de95df65f449fd4) |
+| Hedera Schedule Service: a call the network ran by itself, paid by the contract | [Schedule `0.0.10838593`](https://hashscan.io/testnet/schedule/0.0.10838593) |
+| Contracts | [`SwapHelper`](https://hashscan.io/testnet/contract/0.0.10836039) · [`ScheduledSwap`](https://hashscan.io/testnet/contract/0.0.10838897) · [`BatchPayout`](https://hashscan.io/testnet/contract/0.0.10838907) |
+
+Run `npm run demo:swap`, `demo:pay`, `demo:payout` or `demo:dca` to make your own.
 
 ## What you get
 
@@ -40,17 +91,19 @@ It is a swap toolkit, not a single demo page:
 | **Auto-buy** | Recurring purchases run by the Hedera Schedule Service, with progress, cancel and resume. |
 | **In-app docs** | A `/docs` section with a sidebar: quickstart, how swaps work, components, hooks, customize, architecture, troubleshooting. |
 
-### Use cases
+### What we offer
 
-| Use case | Route | Status | How it works |
-| --- | --- | --- | --- |
-| **Swap** | `/swap` | Done | HBAR to token, token to token, token to HBAR. |
-| **Pay in any token** | `/pay` | Done | The buyer pays with any token and the receiver gets the token they chose. Build a link on `/pay`, share it, and the buyer lands on a checkout for it. The receiver address is passed as the swap `recipient`. |
-| **Buy a token** | `/buy` | Done | A swap widget with a fixed output token, for a project's own token page. `/buy?token=0.0.1183558` or set `NEXT_PUBLIC_BUY_TOKEN`. |
-| **Payouts** | `/payouts` | Done | Paste a list, see what each recipient gets, and pay everyone in one transaction through `BatchPayout`. A payment that fails is refunded, not fatal. |
-| **Auto-buy (DCA)** | `/dca` | Done | Buy a token on a schedule. `ScheduledSwap` schedules each run through the Hedera Schedule Service, and each run schedules the next. No bot. |
+| Use case | Route | What it does |
+| --- | --- | --- |
+| **Swap** | `/swap` | HBAR to token, token to token and token to HBAR through SaucerSwap V2. |
+| **Pay in any token** | `/pay` | The buyer pays with any token and the receiver gets the token they chose. Create a link, share it, and the buyer lands on a checkout. |
+| **Payouts** | `/payouts` | Paste a list, see what each recipient gets, and pay everyone in one transaction through `BatchPayout`. A payment that fails is refunded. |
+| **Auto-buy** | `/dca` | Buy a token on a schedule. `ScheduledSwap` schedules each run through the Hedera Schedule Service and each run schedules the next, with no bot. |
+| **Buy a token** | `/buy` | A swap widget with the output fixed, for a project's own token page: `/buy?token=0.0.1183558` or `NEXT_PUBLIC_BUY_TOKEN`. |
 
-**Pay links.** `/pay?to=0x...&token=0.0.1183558&label=Cafe&order=1042` opens a checkout. `to` is the receiver, `token` is the token they receive (a Hedera id or `HBAR`), `label` and `order` are shown to the buyer. The receiver must be associated with the token, and the checkout tells the buyer if they are not. A swap sets the amount the buyer pays, not the amount the receiver gets, so for now the receiver gets the quoted amount at the time of payment.
+Each one is also a component you can drop into your own app (`SwapWidget`, `PayoutsForm`, `DcaForm` and more), and each has a command-line demo.
+
+**Pay links.** `/pay?to=0x...&token=0.0.1183558&label=Cafe&order=1042` opens a checkout. `to` is the receiver, `token` is the token they receive (a Hedera id or `HBAR`), `label` and `order` are shown to the buyer. The receiver needs a Hedera account that can receive the token, and the checkout tells the buyer if it cannot. The buyer sets what they pay, and the receiver gets the quoted amount at the time of payment.
 
 ### Auto-buy with the Hedera Schedule Service
 
@@ -170,17 +223,6 @@ Every use case has a demo that sends one real testnet transaction and prints its
 | `npm run demo:pay` | Pays 0.5 HBAR as SAUCE to a receiver (`DEMO_RECEIVER=0x...`, default yourself) | about 0.7 HBAR |
 | `npm run demo:payout` | Pays two recipients in one batch | about 1.1 HBAR |
 | `npm run demo:dca` | Creates a 2-run auto-buy and watches the network run it | about 6 HBAR |
-
-### Proof on Hedera testnet
-
-| Use case | Transaction |
-| --- | --- |
-| Swap, 1 HBAR to SAUCE | [`0x1bd1c348…b4f2`](https://hashscan.io/testnet/transaction/0x1bd1c3480d29849e60e9f8abc79733b5fc713d1649a9edb118752ba08fd7b4f2) |
-| Payout, two payments in one batch | [`0x6b8e5a07…ff5c`](https://hashscan.io/testnet/transaction/0x6b8e5a07fd5fe34705a76ad9cb086c8e4c331c503f921595d3d2c87dc502ff5c) |
-| Pay in any token | uses the swap path with a `recipient`; run `npm run demo:pay` |
-| Auto-buy | `ScheduledSwap` is deployed on testnet (`0.0.10838897`). Run `npm run demo:dca` to create a plan and watch the network run it (needs about 6 HBAR) |
-
-The deployed contracts are in the table above.
 
 ## Environment variables
 
@@ -305,9 +347,19 @@ docs/                              components, customize, architecture
 
 **Wrong network.** The widget reads the wallet's chain. Switch to Hedera Testnet (296) or Mainnet (295).
 
-## Status
+## Tested
 
-Tested: 52 contract tests (`SwapHelper` 26, `ScheduledSwap` 17, `BatchPayout` 9), 32 unit tests, type check, lint and production build. Run on testnet: deploys of all three contracts, a swap, and a batch payout. A full multi-run auto-buy has no recorded Hashscan link yet (run `npm run demo:dca` to make one), and the wallet-driven UI and mainnet have not been exercised. See [PLAN.md](PLAN.md).
+- 52 contract tests: `SwapHelper` (26), `ScheduledSwap` (17, against a mock Schedule Service) and `BatchPayout` (9)
+- 32 unit tests for the swap, payout and auto-buy logic, plus type check, lint and a production build in CI
+- All three contracts deployed on Hedera testnet, with a real swap and a real batch payout executed
+- A fresh scaffold from this template installs, builds and passes lint and tests
+
+## Limits
+
+- A swap fixes what the buyer pays, so a checkout cannot request an exact amount for the receiver (that needs an exact-output swap).
+- The order id on a payment link is shown in the page and is not recorded on-chain.
+- Payouts are funded with HBAR; each recipient can receive HBAR or any token with a SaucerSwap pool.
+- Mainnet endpoints are configured, and the contracts are deployed on testnet. Check each id on HashScan and run a small transaction before using real funds.
 
 ## Links
 
@@ -315,6 +367,10 @@ Tested: 52 contract tests (`SwapHelper` 26, `ScheduledSwap` 17, `BatchPayout` 9)
 - [SaucerSwap developer docs](https://docs.saucerswap.finance)
 - [Hedera Portal faucet](https://portal.hedera.com/faucet)
 - [HashScan](https://hashscan.io/)
+
+## Author
+
+Built by [ayushsingh82](https://github.com/ayushsingh82). Issues and pull requests are welcome at [github.com/ayushsingh82/hedera-swap-kit](https://github.com/ayushsingh82/hedera-swap-kit).
 
 ## License
 

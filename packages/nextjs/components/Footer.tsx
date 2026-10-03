@@ -36,7 +36,7 @@ export const Footer = () => {
         <ul className="menu menu-horizontal w-full">
           <div className="flex justify-center items-center gap-3 text-sm w-full text-base-content/60">
             <a
-              href="https://github.com/hedera-dev/scaffold-hbar"
+              href="https://github.com/ayushsingh82/hedera-swap-kit"
               target="_blank"
               rel="noreferrer"
               className="link hover:text-primary"
@@ -53,6 +53,18 @@ export const Footer = () => {
                 className="font-semibold link hover:text-primary"
               >
                 Hedera
+              </a>
+            </span>
+            <span className="opacity-30">|</span>
+            <span>
+              Built by{" "}
+              <a
+                href="https://github.com/ayushsingh82"
+                target="_blank"
+                rel="noreferrer"
+                className="font-semibold link hover:text-primary"
+              >
+                ayushsingh82
               </a>
             </span>
             <span className="opacity-30">|</span>
