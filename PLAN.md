@@ -1,4 +1,4 @@
-# Plan: swap-kit (SaucerSwap swap template for scaffold-hbar)
+# Plan: hedera-swap-kit (SaucerSwap swap template for scaffold-hbar)
 
 Built for the Hedera Scaffold-HBAR Template Bounty. Deadline: **Sun Oct 4, 11:59 PM ET**.
 Rubric: ecosystem integration 35, docs 30, code quality 20, Hedera service depth 15.
@@ -66,30 +66,25 @@ Kept from `create-scaffold-hbar` so the CLI scripts keep working:
 - [x] `SwapHelper` is `Ownable`; the deploy script passes the deployer as owner
 - [x] 26 unit tests (was 14): fee default, owner only, cap, fee on each swap type, withdrawals, recipient, zero address
 
-### Phase 2: frontend (`packages/nextjs`)
-Component kit in `components/swap/`, hooks in `hooks/swap/`, each documented in the README.
+### Phase 2: frontend (`packages/nextjs`) (built, uncommitted)
+Component kit in `components/swap/`, hooks in `hooks/swap/`, pure logic in `utils/swap/`.
 
 Components:
-- [ ] `SwapWidget`: the drop-in widget that composes everything below
-- [ ] `TokenSelect`: searchable token list with logo, symbol and balance
-- [ ] `AmountInput`: amount with MAX button and USD value
-- [ ] `SlippageSettings`: presets and custom value, plus deadline
-- [ ] `QuoteDetails`: rate, minimum received, price impact, route, fees
-- [ ] `AssociateButton`: checks association and associates in one click
-- [ ] `TxStatus`: pending, success and error states with a Hashscan link
-- [ ] `SwapHistory`: recent swaps for the connected account from the mirror node
-- [ ] `PoolsTable` (Should): SaucerSwap pools with TVL, fee tier and reserves
+- [x] `SwapWidget`, `TokenSelect`, `AmountInput`, `SlippageSettings`, `QuoteDetails`, `AssociateButton`, `TxStatus`, `SwapHistory`, `PoolsTable`
 
 Hooks:
-- [ ] `useQuote` (QuoterV2), `useSwap` (builds the path and calls `SwapHelper`), `useTokenList`, `useTokenBalances`, `useAssociation`, `useSwapHistory`
+- [x] `useQuote`, `useSwap`, `useTokenList`, `useTokenBalances`, `useAssociation`, `useSwapHistory`, plus `useRoute`, `usePools`, `useSwapHelper`, `useSwapNetwork`
 
-Pages and routes (for the gate):
-- [ ] `/` landing page explaining the template, `/swap` the demo app, `/pools`, `/history`, `/api/health`
+Pages and routes:
+- [x] `/` landing, `/swap`, `/pools`, `/history`, `/api/health`, header links
 
 Quality:
-- [ ] Loading, empty and error states on every component
-- [ ] Mobile layout
-- [ ] Component tests for the pure logic (slippage math, path building, formatting)
+- [x] Loading, empty and error states
+- [x] Unit tests for the pure logic (18, vitest) and a live testnet quote test (`LIVE=1 npm run next:test`)
+- [x] Fixed a fresh-scaffold build failure: webpack tried to resolve the optional `@x402/*` packages pulled in by RainbowKit connectors
+- [x] CI runs the unit tests and the production build
+- [ ] Not verified yet: a real wallet driving the UI, `associate()` and a swap on testnet (needs the funded key and a deployed SwapHelper)
+- [ ] Mobile layout check in a real browser
 
 ### Phase 3: docs (30 points, treated as a product)
 - [ ] `README.md`: what and why, screenshot, prerequisites, quickstart, env vars, architecture diagram, "how swaps work on Hedera" (association, WHBAR, tinybar vs weibar), project structure, troubleshooting, Hashscan proof link

@@ -44,5 +44,11 @@ jobs:
       - name: Check typings on nextjs
         run: npm run next:check-types
 
+      - name: Run nextjs unit tests
+        run: npm run next:test
+
+      - name: Build nextjs
+        run: npm run next:build
+
       - name: Run hardhat lint
         run: npm run hardhat:lint --max-warnings=0
