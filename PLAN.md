@@ -83,8 +83,10 @@ Quality:
 - [x] Unit tests for the pure logic (18, vitest) and a live testnet quote test (`LIVE=1 npm run next:test`)
 - [x] Fixed a fresh-scaffold build failure: webpack tried to resolve the optional `@x402/*` packages pulled in by RainbowKit connectors
 - [x] CI runs the unit tests and the production build
-- [ ] Not verified yet: a real wallet driving the UI, `associate()` and a swap on testnet (needs the funded key and a deployed SwapHelper)
-- [ ] Mobile layout check in a real browser
+- [x] Live testnet checks of the contract paths through the deployed `SwapHelper` (`0x206bf34BA9c73dfC14c7847ad202a271c8105b30`): HBAR to token, `SwapHelper.associate`, wallet association, and token to HBAR all succeeded. The swap widget renders with the burner wallet
+- [ ] Not verified: a person clicking through the UI with a real wallet (headless Chrome cannot sign)
+- [x] Fixed from the live run: `SWAP_GAS` (1.5M) was below the 1.66M a token to HBAR swap consumes, and `ASSOCIATE_GAS` (0.8M) was tight at 0.73M. Raised to 2.5M and 1.0M
+- [x] Mobile layout checked at 390px in headless Chrome (no horizontal overflow); screenshots in `docs/images/`
 
 ### Phase 3: docs (30 points, treated as a product)
 - [x] `README.md` (written; screenshot and Hashscan link are TODO placeholders): what and why, screenshot, prerequisites, quickstart, env vars, architecture diagram, "how swaps work on Hedera" (association, WHBAR, tinybar vs weibar), project structure, troubleshooting, Hashscan proof link
@@ -92,7 +94,7 @@ Quality:
 - [x] `docs/customize.md`: swap the DEX out, add a token, change the fee, add a pool, go to mainnet
 - [x] `docs/architecture.md`: contract and frontend flow diagrams
 - [x] `AGENTS.md`: repo map, commands, conventions, do and don't for AI agents (replace the stale scaffold text)
-- [ ] Comments only where the code is non-obvious
+- [x] Comments only where the code is non-obvious (reviewed while writing the docs)
 
 ### Phase 4: gate verification (run Oct 3 on a clean scaffold; uncommitted changes)
 - [x] Template command run from a clean directory with `--ci`. **Found and fixed a gate-breaking bug:** `template.json` had no top-level `name`, which the CLI requires, so scaffolding failed. Added `name`, `description`, `version`, `requirements` and an `outro`
@@ -101,8 +103,8 @@ Quality:
 - [x] App boots; `/`, `/swap`, `/pools`, `/history`, `/docs`, `/debug` and `/api/health` return 200
 - [x] `template.json` valid, README and AGENTS present, MIT licence with the original and our copyright lines
 - [x] No committed `.env` or keystore. The only key-like string is the public Hardhat default account in `hardhat.config.ts`
-- [ ] Hashscan link in the README: needs `npm run hardhat:swap-testnet` with a funded key
-- [ ] Hardhat contract tests were not re-run in the clean app
+- [x] Hashscan link in the README: SwapHelper deployed on testnet at `0x206bf34BA9c73dfC14c7847ad202a271c8105b30`, swap tx `0x1bd1c348…b4f2` (1 HBAR to SAUCE)
+- [x] Hardhat contract tests: 26 passing
 - [ ] `PLAN.md`, `.agents/` and `.claude/` ship inside generated projects. Decide whether to keep them
 
 ### Phase 5: submit
