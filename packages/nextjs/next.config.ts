@@ -14,6 +14,15 @@ const nextConfig: NextConfig = {
   webpack: (config, { dev }) => {
     config.resolve.fallback = { fs: false, net: false, tls: false };
     config.externals.push("pino-pretty", "lokijs", "encoding");
+    // @coinbase/cdp-sdk (pulled in by the RainbowKit connectors) lists the x402 payment packages as optional peers.
+    // npm does not install them, and this app does not use Coinbase x402 payments, so webpack must not resolve them.
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      "@x402/core": false,
+      "@x402/evm": false,
+      "@x402/svm": false,
+      "@x402/extensions": false,
+    };
     if (dev) {
       config.watchOptions = {
         followSymlinks: true,
