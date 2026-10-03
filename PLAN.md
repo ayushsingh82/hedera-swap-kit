@@ -134,6 +134,14 @@ Root npm scripts that work after `npm create scaffold-hbar@latest -- --template 
 | `npm run demo:swap`, `demo:pay`, `demo:payout`, `demo:dca` | Runs one real testnet transaction per use case and prints the Hashscan link |
 | `npm run dev` | Starts the app |
 
+### Progress (Oct 3)
+- [x] HSS spike: a contract schedules itself and the network runs it. Needs the contract to hold gas limit x price at each run, and a rescheduling run uses about 1.4M gas
+- [x] `/buy`, `/pay` and the Use cases menu
+- [x] `ScheduledSwap` contract (HSS auto-buy) with 17 tests against a mock Schedule Service, and its deploy script
+- [x] `/dca` page: form with cost breakdown, plans list with cancel, resume and a Hashscan link to the next run
+- [ ] Deploy `ScheduledSwap` to testnet and run a real 3-run plan (needs about 15 HBAR in the deployer), then remove the `as never` cast in `useScheduledSwap.ts`
+- [ ] `/payouts`, CLI scripts, per-use-case docs
+
 ### Build order (cut from the bottom; docs are never cut)
 1. **Gate first.** Make the repo public, re-run the template command from GitHub, keep CI green. A failed gate means no prize, whatever else we build.
 2. **HSS spike (1 to 2 hours).** Prove a contract can `scheduleCall` itself on testnet. If it fails, DCA falls back to `executeSwap` callable by anyone (keeper style) and we document it. Decide before building the rest.

@@ -1,8 +1,10 @@
 import { getSwapNetwork, idToEvmAddress } from "./config";
+import { dcaCost, formatInterval, parsePlanIds, planStatus, scheduleId } from "./dca";
 import { parseSwapLogs } from "./history";
 import { applySlippage, formatAmount, parseAmount, priceImpactPercent, splitFee } from "./math";
 import { SwapPool, encodePath, findRoute } from "./route";
 import { HBAR, SaucerSwapApiToken, buildTokenList, pathId } from "./tokens";
+import { encodeAbiParameters, pad, parseAbiParameters, toEventSelector, toHex } from "viem";
 import { describe, expect, it } from "vitest";
 
 const WHBAR = "0.0.15058";
@@ -183,5 +185,47 @@ describe("parseSwapLogs", () => {
     expect(parseSwapLogs([swapLog], DEPLOYER.toLowerCase())).toHaveLength(1);
     expect(parseSwapLogs([swapLog], "0x846Ff469eC6e8592ae71D9D52999b89534639B3A")).toHaveLength(0);
     expect(parseSwapLogs([otherEvent], DEPLOYER)).toHaveLength(0);
+  });
+});
+
+describe("dca", () => {
+  it("adds the automation fee to the swap budget", () => {
+    expect(dcaCost(100n, 3, 10n)).toEqual({ budget: 300n, fee: 30n, total: 330n });
+  });
+
+  it("tells active, paused and ended plans apart", () => {
+    expect(planStatus({ active: true, runsLeft: 2n })).toBe("active");
+    expect(planStatus({ active: false, runsLeft: 2n })).toBe("paused");
+    expect(planStatus({ active: false, runsLeft: 0n })).toBe("ended");
+  });
+
+  it("turns a schedule address into a Hedera id", () => {
+    expect(scheduleId("0x0000000000000000000000000000000000a5624a")).toBe("0.0.10838602");
+    expect(scheduleId("0x0000000000000000000000000000000000000000")).toBeUndefined();
+  });
+
+  it("names the intervals", () => {
+    expect(formatInterval(60)).toBe("every minute");
+    expect(formatInterval(3 * 86_400)).toBe("every 3 days");
+    expect(formatInterval(7200)).toBe("every 2 hours");
+  });
+
+  it("finds the account's plan ids, newest first, and skips other owners", () => {
+    const planCreated = (id: number, owner: string) => ({
+      topics: [
+        toEventSelector("PlanCreated(uint256,address,address,uint256,uint256,uint256)"),
+        pad(toHex(id), { size: 32 }),
+        pad(owner as `0x${string}`, { size: 32 }),
+        pad(owner as `0x${string}`, { size: 32 }),
+      ],
+      data: encodeAbiParameters(parseAbiParameters("uint256, uint256, uint256"), [1n, 60n, 3n]),
+      transaction_hash: "0x",
+      timestamp: "1.0",
+    });
+    const me = "0x4C33522F886A5c8c08e26d328b8D646A25501081";
+    const them = "0x846Ff469eC6e8592ae71D9D52999b89534639B3A";
+    const logs = [planCreated(0, me), planCreated(1, them), planCreated(2, me)];
+    expect(parsePlanIds(logs, me)).toEqual([2n, 0n]);
+    expect(parsePlanIds(logs, me.toLowerCase())).toEqual([2n, 0n]);
   });
 });

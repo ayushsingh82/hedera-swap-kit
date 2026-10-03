@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  ArrowPathIcon,
   ArrowsRightLeftIcon,
   BanknotesIcon,
   Bars3Icon,
@@ -29,6 +30,7 @@ type HeaderMenuLink = {
 const useCaseLinks: HeaderMenuLink[] = [
   { label: "Swap", href: "/swap", icon: <ArrowsRightLeftIcon className="h-4 w-4" /> },
   { label: "Pay", href: "/pay", icon: <CreditCardIcon className="h-4 w-4" /> },
+  { label: "Auto-buy", href: "/dca", icon: <ArrowPathIcon className="h-4 w-4" /> },
   { label: "Buy a token", href: "/buy", icon: <BanknotesIcon className="h-4 w-4" /> },
 ];
 
