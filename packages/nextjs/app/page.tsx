@@ -12,6 +12,8 @@ import {
   UsersIcon,
 } from "@heroicons/react/24/outline";
 import { CodeBlock } from "~~/components/CodeBlock";
+import { WidgetTabs } from "~~/components/WidgetTabs";
+import { PAYOUT_TX, REPO, SWAP_TX } from "~~/components/docs/nav";
 
 const useCases = [
   {
@@ -58,9 +60,19 @@ const features = [
     text: "Checks whether an account can hold a token and associates in one click. Accounts with automatic associations need no step.",
   },
   {
+    icon: UsersIcon,
+    title: "Batch payouts",
+    text: "Up to 50 recipients in one transaction. Every row is checked first, and a payment that fails is refunded.",
+  },
+  {
+    icon: ArrowPathIcon,
+    title: "Scheduled by the network",
+    text: "Auto-buy uses the Hedera Schedule Service: each run schedules the next, with no keeper to host.",
+  },
+  {
     icon: PuzzlePieceIcon,
     title: "A kit of parts",
-    text: "SwapWidget, TokenSelect, QuoteDetails, AssociateButton and hooks. Drop one in or the whole widget.",
+    text: "SwapWidget, TokenSelect, PayoutsForm, DcaForm and the hooks behind them. Drop in one, or the lot.",
   },
   {
     icon: BanknotesIcon,
@@ -69,11 +81,15 @@ const features = [
   },
 ];
 
-const snippet = `import { SwapWidget } from "~~/components/swap";
+const stack = ["SaucerSwap V2", "Hedera Token Service", "Hedera Schedule Service", "Mirror node", "Next.js", "Hardhat"];
 
-export default function Page() {
-  return <SwapWidget />;
-}`;
+const getStarted = `npm create scaffold-hbar@latest my-app -- --template ayushsingh82/hedera-swap-kit
+cd my-app && npm install --legacy-peer-deps
+
+npm run init             # creates a deployer wallet and saves its key
+npm run doctor           # checks the setup
+npm run deploy:testnet   # deploys the contracts
+npm run next:dev`;
 
 const Home: NextPage = () => (
   <div className="flex grow flex-col items-center">
@@ -131,9 +147,49 @@ const Home: NextPage = () => (
         ))}
       </div>
 
-      <div className="mt-10">
-        <h2 className="mb-2 text-xl font-bold">Use it in your app</h2>
-        <CodeBlock code={snippet} filename="app/page.tsx" />
+      <div className="mt-12">
+        <h2 className="mb-1 text-xl font-bold">Drop-in widgets</h2>
+        <p className="mb-4 text-sm opacity-70">Each use case is a component you can put in your own app.</p>
+        <WidgetTabs />
+      </div>
+
+      <div className="mt-12">
+        <h2 className="mb-1 text-xl font-bold">Get started</h2>
+        <p className="mb-4 text-sm opacity-70">From an empty folder to a running app on Hedera testnet.</p>
+        <CodeBlock language="bash" code={getStarted} />
+      </div>
+
+      <div className="mt-12">
+        <h2 className="mb-3 text-xl font-bold">Built with</h2>
+        <div className="flex flex-wrap gap-2">
+          {stack.map(item => (
+            <span key={item} className="badge badge-lg badge-outline">
+              {item}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-12 rounded-2xl border border-base-300 bg-base-100 p-5">
+        <h2 className="text-xl font-bold">Verified on Hedera testnet</h2>
+        <p className="mt-1 text-sm opacity-70">Real transactions through the deployed contracts.</p>
+        <ul className="mt-3 space-y-1 text-sm">
+          <li>
+            <a className="link link-primary" href={SWAP_TX} target="_blank" rel="noreferrer">
+              A swap of 1 HBAR for SAUCE
+            </a>
+          </li>
+          <li>
+            <a className="link link-primary" href={PAYOUT_TX} target="_blank" rel="noreferrer">
+              A batch payout to two recipients
+            </a>
+          </li>
+          <li>
+            <a className="link link-primary" href={REPO} target="_blank" rel="noreferrer">
+              Source code on GitHub
+            </a>
+          </li>
+        </ul>
       </div>
     </div>
   </div>
