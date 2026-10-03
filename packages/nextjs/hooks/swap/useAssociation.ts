@@ -7,7 +7,8 @@ import { getParsedError } from "~~/utils/scaffold-hbar";
 import { hrc719Abi, swapHelperAbi } from "~~/utils/swap/abis";
 import { SwapToken } from "~~/utils/swap/tokens";
 
-const ASSOCIATE_GAS = 800_000n;
+// Association consumed ~0.73M gas on testnet, so 0.8M is too tight.
+const ASSOCIATE_GAS = 1_000_000n;
 
 /**
  * Whether an account is associated with an HTS token, and a way to associate it. On Hedera an account, and a
