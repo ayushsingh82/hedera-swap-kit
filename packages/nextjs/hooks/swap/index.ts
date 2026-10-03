@@ -1,5 +1,7 @@
 export * from "./useAssociation";
+export * from "./useBatchPayout";
 export * from "./useDcaPlans";
+export * from "./usePayoutChecks";
 export * from "./useQuote";
 export * from "./useRoute";
 export * from "./useSaucerSwapData";

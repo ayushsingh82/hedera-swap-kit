@@ -43,3 +43,10 @@ export const scheduledSwapAbi = parseAbi([
   "function resume(uint256 id)",
   "event PlanCreated(uint256 indexed id, address indexed owner, address indexed recipient, uint256 amountPerRun, uint256 interval, uint256 runs)",
 ]);
+
+export const batchPayoutAbi = parseAbi([
+  "function payout((address recipient, uint256 amountIn, uint256 minOut, bytes path)[] payments, bytes32 batchId, uint256 deadline) payable returns (uint256 sent, uint256 failed)",
+  "event PayoutSent(address indexed sender, bytes32 indexed batchId, address indexed recipient, address tokenOut, uint256 amountIn, uint256 amountOut)",
+  "event PayoutFailed(address indexed sender, bytes32 indexed batchId, address indexed recipient, uint256 index, uint256 amountIn)",
+  "event BatchCompleted(address indexed sender, bytes32 indexed batchId, uint256 sent, uint256 failed, uint256 refunded)",
+]);

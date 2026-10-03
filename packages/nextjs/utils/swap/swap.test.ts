@@ -2,6 +2,7 @@ import { getSwapNetwork, idToEvmAddress } from "./config";
 import { dcaCost, formatInterval, parsePlanIds, planStatus, scheduleId } from "./dca";
 import { parseSwapLogs } from "./history";
 import { applySlippage, formatAmount, parseAmount, priceImpactPercent, splitFee } from "./math";
+import { MAX_PAYOUTS, batchIdToBytes32, findToken, parsePayoutCsv, payoutGas } from "./payouts";
 import { SwapPool, encodePath, findRoute } from "./route";
 import { HBAR, SaucerSwapApiToken, buildTokenList, pathId } from "./tokens";
 import { encodeAbiParameters, pad, parseAbiParameters, toEventSelector, toHex } from "viem";
@@ -227,5 +228,57 @@ describe("dca", () => {
     const logs = [planCreated(0, me), planCreated(1, them), planCreated(2, me)];
     expect(parsePlanIds(logs, me)).toEqual([2n, 0n]);
     expect(parsePlanIds(logs, me.toLowerCase())).toEqual([2n, 0n]);
+  });
+});
+
+describe("payouts", () => {
+  const ALICE = "0x846Ff469eC6e8592ae71D9D52999b89534639B3A";
+  const BOB = "0x1d17866a4B81d16A6B1a83338c9A11Bf56141d09";
+  const sauce = { id: "0.0.1183558", symbol: "SAUCE", name: "SaucerSwap", decimals: 6, address: "0x0" } as never;
+  const usdc = { id: "0.0.5449", symbol: "USDC", name: "USD Coin", decimals: 6, address: "0x1" } as never;
+  const tokens = [sauce, usdc];
+
+  it("finds a token by symbol or id, and HBAR as native", () => {
+    expect(findToken(tokens, "sauce")).toBe(sauce);
+    expect(findToken(tokens, "0.0.5449")).toBe(usdc);
+    expect(findToken(tokens, "hbar")).toBe(HBAR);
+    expect(findToken(tokens, "NOPE")).toBeUndefined();
+  });
+
+  it("parses rows, falling back to the default token", () => {
+    const rows = parsePayoutCsv(`${ALICE}, 0.5, USDC\n${BOB};1.25`, tokens, sauce);
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ line: 1, recipient: ALICE, amountIn: 50_000_000n, token: usdc });
+    expect(rows[1]).toMatchObject({ line: 2, recipient: BOB, amountIn: 125_000_000n, token: sauce });
+    expect(rows.every(r => !r.error)).toBe(true);
+  });
+
+  it("skips a header, blank lines and comments", () => {
+    const rows = parsePayoutCsv(`address,amount,token\n\n# october\n${ALICE},1`, tokens, sauce);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].line).toBe(4);
+  });
+
+  it("reports what is wrong with a row", () => {
+    const [badAddress, badAmount, badToken] = parsePayoutCsv(`0x123,1\n${ALICE},abc\n${ALICE},1,NOPE`, tokens, sauce);
+    expect(badAddress.error).toMatch(/address/);
+    expect(badAmount.error).toMatch(/amount/);
+    expect(badToken.error).toMatch(/Unknown token/);
+  });
+
+  it("limits the batch size", () => {
+    const text = Array.from({ length: MAX_PAYOUTS + 1 }, () => `${ALICE},1`).join("\n");
+    const rows = parsePayoutCsv(text, tokens, sauce);
+    expect(rows[MAX_PAYOUTS].error).toMatch(/fit in one batch/);
+  });
+
+  it("encodes the batch id and rejects text that is too long", () => {
+    expect(batchIdToBytes32("")).toBe(`0x${"0".repeat(64)}`);
+    expect(batchIdToBytes32("2026-10 payroll")).toMatch(/^0x323032362d3130207061/);
+    expect(batchIdToBytes32("x".repeat(32))).toBeUndefined();
+  });
+
+  it("scales gas with the number of payments", () => {
+    expect(payoutGas(10)).toBeGreaterThan(payoutGas(1));
   });
 });
