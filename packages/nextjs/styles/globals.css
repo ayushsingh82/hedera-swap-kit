@@ -150,3 +150,13 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/*
+  @scaffold-hbar-ui ships its text colors as white ("--color-sui-primary-content" and
+  "--color-sui-input-text"), which is unreadable on the light theme's light surfaces.
+  Use the theme's own text color in light mode. Dark mode keeps the package values.
+*/
+[data-theme="light"] {
+  --color-sui-primary-content: var(--color-base-content);
+  --color-sui-input-text: var(--color-base-content);
+}

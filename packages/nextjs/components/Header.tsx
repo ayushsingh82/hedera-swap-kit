@@ -24,10 +24,6 @@ type HeaderMenuLink = {
 
 export const menuLinks: HeaderMenuLink[] = [
   {
-    label: "Home",
-    href: "/",
-  },
-  {
     label: "Swap",
     href: "/swap",
     icon: <ArrowsRightLeftIcon className="h-4 w-4" />,
@@ -116,7 +112,7 @@ export const Header = () => {
             <Image alt="Hedera icon" className="cursor-pointer hidden dark:block" fill src="/Hedera-Icon-White.svg" />
           </div>
           <div className="flex flex-col">
-            <span className="font-bold leading-tight text-base">Scaffold-HBAR</span>
+            <span className="font-bold leading-tight text-base">hedera-swap-kit</span>
             <span className="text-[10px] tracking-wider uppercase text-base-content/50 font-medium">
               Built on Hedera
             </span>
