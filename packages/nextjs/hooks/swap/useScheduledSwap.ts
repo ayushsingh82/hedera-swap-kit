@@ -10,8 +10,7 @@ import { scheduledSwapAbi } from "~~/utils/swap/abis";
 export function useScheduledSwap() {
   const network = useSwapNetwork();
   const { data: deployed, isLoading } = useDeployedContractInfo({
-    // TODO: drop the cast once ScheduledSwap is deployed to testnet, so deployedContracts.ts types it for chain 296.
-    contractName: "ScheduledSwap" as never,
+    contractName: "ScheduledSwap",
     chainId: network.chainId as never,
   });
   const address = (deployed as { address?: string } | undefined)?.address as `0x${string}` | undefined;

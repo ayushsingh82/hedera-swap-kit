@@ -137,10 +137,15 @@ Root npm scripts that work after `npm create scaffold-hbar@latest -- --template 
 ### Progress (Oct 3)
 - [x] HSS spike: a contract schedules itself and the network runs it. Needs the contract to hold gas limit x price at each run, and a rescheduling run uses about 1.4M gas
 - [x] `/buy`, `/pay` and the Use cases menu
-- [x] `ScheduledSwap` contract (HSS auto-buy) with 17 tests against a mock Schedule Service, and its deploy script
-- [x] `/dca` page: form with cost breakdown, plans list with cancel, resume and a Hashscan link to the next run
-- [ ] Deploy `ScheduledSwap` to testnet and run a real 3-run plan (needs about 15 HBAR in the deployer), then remove the `as never` cast in `useScheduledSwap.ts`
-- [ ] `/payouts`, CLI scripts, per-use-case docs
+- [x] `ScheduledSwap` (HSS auto-buy): 17 tests against a mock Schedule Service, deploy script, `/dca` page. **Deployed on testnet** (`0.0.10838897`)
+- [x] `BatchPayout`: 9 tests, deploy script, `/payouts` page with per-row checks. **Deployed on testnet** (`0.0.10838907`). **Live proof:** two payments in one batch, `0x6b8e5a07…ff5c`
+- [x] CLI: `init`, `doctor`, `deploy:testnet`, `demo:swap|pay|payout|dca` (root npm scripts)
+- [x] Docs: README, `docs/use-cases.md`, architecture and customize updates, in-app guides for every use case, AGENTS.md
+- [x] Landing page lists the use cases; Block Explorer link only shows on the local network
+- [x] Findings that changed the code: new accounts auto-associate tokens (the kit no longer asks needlessly); paying an address with no account aborts a whole batch (`INVALID_ALIAS_KEY`, now checked); ethers' default `maxFeePerGas` doubles the gas reserve (scripts cap it)
+- [x] Auto-buy is done: contract deployed, page built, 17 tests. A recorded live multi-run is optional and left to `npm run demo:dca`
+- [ ] `demo:pay` and the `/pay`, `/buy`, `/dca`, `/payouts` pages clicked through with a real wallet
+- [ ] Make the repo public, re-run the template command from GitHub
 
 ### Build order (cut from the bottom; docs are never cut)
 1. **Gate first.** Make the repo public, re-run the template command from GitHub, keep CI green. A failed gate means no prize, whatever else we build.

@@ -1,6 +1,6 @@
 {
   "name": "hedera-swap-kit",
-  "description": "Token swaps on Hedera through SaucerSwap V2: a SwapHelper contract, a React swap component kit and hooks, and a demo app.",
+  "description": "Swap, pay, pay out and schedule on Hedera: SaucerSwap V2 swaps, payment links, batch payouts and auto-buy run by the Hedera Schedule Service, with a React component kit and a demo app.",
   "version": "0.1.0",
   "create-scaffold-hbar": {
     "capabilities": {
@@ -21,10 +21,30 @@
         {
           "title": "Deploy and run",
           "steps": [
-            { "label": "Create a deployer account", "command": "{run:hardhat:account:generate}" },
-            { "label": "Fund it with testnet HBAR", "url": "https://portal.hedera.com/faucet" },
-            { "label": "Deploy SwapHelper to testnet", "command": "{run:hardhat:deploy} -- --network hederaTestnet" },
-            { "label": "Start the app and open /swap", "command": "{run:next:dev}" }
+            {
+              "label": "Create a deployer wallet",
+              "command": "{run:init}"
+            },
+            {
+              "label": "Fund it with testnet HBAR (about 20)",
+              "url": "https://portal.hedera.com/faucet"
+            },
+            {
+              "label": "Check the setup",
+              "command": "{run:doctor}"
+            },
+            {
+              "label": "Deploy the contracts to testnet",
+              "command": "{run:deploy:testnet}"
+            },
+            {
+              "label": "Start the app",
+              "command": "{run:next:dev}"
+            },
+            {
+              "label": "Try a use case from the command line",
+              "command": "{run:demo:payout}"
+            }
           ]
         }
       ]

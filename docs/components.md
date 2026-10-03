@@ -246,3 +246,16 @@ export function MiniSwap() {
 ```
 
 Remember the recipient must be associated with the output token first. Add `<AssociateButton token={out} subject="wallet" />`.
+
+## Use-case components
+
+In `components/use-cases/`. These are full flows built from the parts above.
+
+| Component | What it does |
+| --- | --- |
+| `PaymentLinkBuilder` | Builds a `/pay` link from a receiver address, a token, and an optional shop name and order id. |
+| `DcaForm` | Starts an auto-buy: token, HBAR per run, interval, runs, with the cost breakdown. Calls `ScheduledSwap.create`. |
+| `DcaPlans` | The connected account's auto-buy plans with progress, a Hashscan link to the next run, Cancel and Resume. |
+| `PayoutsForm` | Paste payouts, see the check for every row, and send them with one signature through `BatchPayout`. |
+
+Their hooks are `useScheduledSwap`, `useDcaPlans`, `useBatchPayout` and `usePayoutChecks` in `hooks/swap/`.

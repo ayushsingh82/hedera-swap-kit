@@ -40,7 +40,17 @@ export function useAssociation(token: SwapToken | undefined, subject: "wallet" |
       if (response.status === 404) return false;
       if (!response.ok) throw new Error(`Mirror node request failed (${response.status})`);
       const body = (await response.json()) as { tokens: unknown[] };
-      return body.tokens.length > 0;
+      if (body.tokens.length > 0) return true;
+
+      // An account that allows automatic associations (the default for new accounts) gets the token on arrival.
+      // SwapHelper pulls its input token itself, so that case still needs an explicit association.
+      if (subject !== "wallet") return false;
+      const account_ = await fetch(`${network.mirrorNode}/api/v1/accounts/${account}`);
+      if (!account_.ok) return false;
+      const { max_automatic_token_associations: auto } = (await account_.json()) as {
+        max_automatic_token_associations?: number;
+      };
+      return auto !== undefined && auto !== 0;
     },
   });
 

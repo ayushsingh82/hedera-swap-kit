@@ -78,6 +78,47 @@ The router receives WHBAR first and unwraps it, because the output of the first 
 - `amountOutMinimum` and `deadline` are enforced by the router, so a swap reverts on bad slippage or when it is stale.
 - The fee is capped at 1% in the contract.
 
+## `BatchPayout`
+
+Pays many recipients in one transaction. For each payment it calls `SwapHelper.swapExactHbarForTokens` (or sends plain HBAR when the path is empty) inside a `try`/`catch`, so a payment that fails is refunded to the sender at the end instead of reverting the batch. It holds no HBAR after a batch.
+
+```mermaid
+sequenceDiagram
+  participant S as Sender
+  participant B as BatchPayout
+  participant H as SwapHelper
+  S->>B: payout(payments, batchId, deadline) + HBAR
+  loop each payment
+    B->>H: swapExactHbarForTokens{value}(path, recipient, minOut, deadline)
+    H-->>B: amountOut, or revert (caught)
+    B-->>S: emit PayoutSent / PayoutFailed
+  end
+  B-->>S: refund the HBAR of failed payments
+  B-->>S: emit BatchCompleted
+```
+
+One thing no `try`/`catch` can handle: paying an address that has no Hedera account aborts the whole transaction (`INVALID_ALIAS_KEY`). The `/payouts` page checks every recipient first.
+
+## `ScheduledSwap`
+
+Auto-buy plans run by the Hedera Schedule Service (HSS, system contract `0x16b`). `create` stores a plan and calls `HSS.scheduleCall(address(this), at, gas, 0, execute(id))`. The network later calls `execute(id)` as the contract itself; `execute` swaps, then schedules the next run.
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant D as ScheduledSwap
+  participant HSS as Schedule Service (0x16b)
+  participant H as SwapHelper
+  U->>D: create(path, recipient, amountPerRun, minOut, interval, runs) + budget + fees
+  D->>HSS: scheduleCall(this, now + interval, gas, 0, execute(id))
+  Note over HSS: the network waits, then runs the call
+  HSS->>D: execute(id) as the contract
+  D->>H: swapExactHbarForTokens{value: amountPerRun}
+  D->>HSS: scheduleCall(next run)
+```
+
+Rules the contract enforces: `execute` only runs when called by the contract itself; escrowed budget is tracked per plan and can never be withdrawn by the owner; the final run is scheduled with a small gas limit because it does not reschedule; if scheduling fails the plan pauses and can be resumed.
+
 ## The frontend
 
 ### Data flow of a swap

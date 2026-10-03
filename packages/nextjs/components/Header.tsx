@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { hardhat } from "viem/chains";
 import {
   ArrowPathIcon,
   ArrowsRightLeftIcon,
@@ -16,9 +17,11 @@ import {
   ClockIcon,
   CreditCardIcon,
   MagnifyingGlassIcon,
+  UsersIcon,
 } from "@heroicons/react/24/outline";
 import { RainbowKitCustomConnectButton } from "~~/components/scaffold-hbar";
 import { useOutsideClick } from "~~/hooks/scaffold-hbar";
+import { useTargetNetwork } from "~~/hooks/scaffold-hbar/useTargetNetwork";
 
 type HeaderMenuLink = {
   label: string;
@@ -30,6 +33,7 @@ type HeaderMenuLink = {
 const useCaseLinks: HeaderMenuLink[] = [
   { label: "Swap", href: "/swap", icon: <ArrowsRightLeftIcon className="h-4 w-4" /> },
   { label: "Pay", href: "/pay", icon: <CreditCardIcon className="h-4 w-4" /> },
+  { label: "Payouts", href: "/payouts", icon: <UsersIcon className="h-4 w-4" /> },
   { label: "Auto-buy", href: "/dca", icon: <ArrowPathIcon className="h-4 w-4" /> },
   { label: "Buy a token", href: "/buy", icon: <BanknotesIcon className="h-4 w-4" /> },
 ];
@@ -100,11 +104,14 @@ const UseCasesMenu = () => {
 
 export const HeaderMenuLinks = () => {
   const pathname = usePathname();
+  // The block explorer reads blocks from a local node, so it only works on the local network. Elsewhere use Hashscan.
+  const { targetNetwork } = useTargetNetwork();
+  const links = menuLinks.filter(link => link.href !== "/blockexplorer" || targetNetwork.id === hardhat.id);
 
   return (
     <>
       <UseCasesMenu />
-      {menuLinks.map(({ label, href, icon }) => {
+      {links.map(({ label, href, icon }) => {
         const isActive = pathname === href;
         return (
           <li key={href}>
